@@ -32,24 +32,24 @@
  *          - $fp: 编号22（帧指针）
  *          - $s0-$s8: 编号23-31（保存寄存器）
  */
-#define __DEFINE_ASM_GPR_NUMS                                             \
-"    .equ    .L__gpr_num_zero, 0\n"                                \
-"    .irp    num,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31\n" \
-"    .equ    .L__gpr_num_$r\\num, \\num\n"                           \
-"    .endr\n"                                                        \
-"    .equ    .L__gpr_num_$ra, 1\n"                                 \
-"    .equ    .L__gpr_num_$tp, 2\n"                                 \
-"    .equ    .L__gpr_num_$sp, 3\n"                                 \
-"    .irp    num,0,1,2,3,4,5,6,7\n"                                \
-"    .equ    .L__gpr_num_$a\\num, 4 + \\num\n"                      \
-"    .endr\n"                                                        \
-"    .irp    num,0,1,2,3,4,5,6,7,8\n"                               \
-"    .equ    .L__gpr_num_$t\\num, 12 + \\num\n"                     \
-"    .endr\n"                                                        \
-"    .equ    .L__gpr_num_$s9, 22\n"                                \
-"    .equ    .L__gpr_num_$fp, 22\n"                                \
-"    .irp    num,0,1,2,3,4,5,6,7,8\n"                               \
-"    .equ    .L__gpr_num_$s\\num, 23 + \\num\n"                     \
-"    .endr\n"
+#define __DEFINE_ASM_GPR_NUMS                                                                               \
+    "    .equ    .L__gpr_num_zero, 0\n"                                                                     \
+    "    .irp    num,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31\n" \
+    "    .equ    .L__gpr_num_$r\\num, \\num\n"                                                              \
+    "    .endr\n"                                                                                           \
+    "    .equ    .L__gpr_num_$ra, 1\n"                                                                      \
+    "    .equ    .L__gpr_num_$tp, 2\n"                                                                      \
+    "    .equ    .L__gpr_num_$sp, 3\n"                                                                      \
+    "    .irp    num,0,1,2,3,4,5,6,7\n"                                                                     \
+    "    .equ    .L__gpr_num_$a\\num, 4 + \\num\n"                                                          \
+    "    .endr\n"                                                                                           \
+    "    .irp    num,0,1,2,3,4,5,6,7,8\n"                                                                   \
+    "    .equ    .L__gpr_num_$t\\num, 12 + \\num\n"                                                         \
+    "    .endr\n"                                                                                           \
+    "    .equ    .L__gpr_num_$s9, 22\n"                                                                     \
+    "    .equ    .L__gpr_num_$fp, 22\n"                                                                     \
+    "    .irp    num,0,1,2,3,4,5,6,7,8\n"                                                                   \
+    "    .equ    .L__gpr_num_$s\\num, 23 + \\num\n"                                                         \
+    "    .endr\n"
 
 #endif /* _GPR_NUM_H */

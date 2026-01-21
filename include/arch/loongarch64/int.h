@@ -35,7 +35,7 @@
  *
  * @details CRMD寄存器的位2用于全局中断使能
  */
-#define REG_INT_ENABLE    0x00000004U
+#define REG_INT_ENABLE 0x00000004U
 
 /**
  * @defgroup IRQControl 本地中断控制
@@ -54,11 +54,10 @@
 static inline void arch_local_irq_enable(void)
 {
     unsigned int flags = (0x1U << 2U);
-    __asm__ __volatile__(
-        "csrxchg %[val], %[mask], %[reg]\n\t"
-        : [val] "+r" (flags)
-        : [mask] "r" (0x1U << 2U), [reg] "i" (0x0)
-        : "memory");
+    __asm__ __volatile__("csrxchg %[val], %[mask], %[reg]\n\t"
+                         : [val] "+r"(flags)
+                         : [mask] "r"(0x1U << 2U), [reg] "i"(0x0)
+                         : "memory");
 }
 
 /**
@@ -73,11 +72,10 @@ static inline void arch_local_irq_enable(void)
 static inline void arch_local_irq_disable(void)
 {
     unsigned int flags = 0U;
-    __asm__ __volatile__(
-        "csrxchg %[val], %[mask], %[reg]\n\t"
-        : [val] "+r" (flags)
-        : [mask] "r" (0x1U << 2U), [reg] "i" (0x0)
-        : "memory");
+    __asm__ __volatile__("csrxchg %[val], %[mask], %[reg]\n\t"
+                         : [val] "+r"(flags)
+                         : [mask] "r"(0x1U << 2U), [reg] "i"(0x0)
+                         : "memory");
 }
 
 /**
@@ -90,11 +88,10 @@ static inline void arch_local_irq_disable(void)
 static inline unsigned long arch_local_irq_save(void)
 {
     unsigned int flags = 0U;
-    __asm__ __volatile__(
-        "csrxchg %[val], %[mask], %[reg]\n\t"
-        : [val] "+r" (flags)
-        : [mask] "r" (0x1U << 2U), [reg] "i" (0x0)
-        : "memory");
+    __asm__ __volatile__("csrxchg %[val], %[mask], %[reg]\n\t"
+                         : [val] "+r"(flags)
+                         : [mask] "r"(0x1U << 2U), [reg] "i"(0x0)
+                         : "memory");
     return (unsigned long)flags;
 }
 
@@ -109,11 +106,10 @@ static inline unsigned long arch_local_irq_save(void)
  */
 static inline void arch_local_irq_restore(unsigned long flags)
 {
-    __asm__ __volatile__(
-        "csrxchg %[val], %[mask], %[reg]\n\t"
-        : [val] "+r" (flags)
-        : [mask] "r" (0x1U << 2U), [reg] "i" (0x0)
-        : "memory");
+    __asm__ __volatile__("csrxchg %[val], %[mask], %[reg]\n\t"
+                         : [val] "+r"(flags)
+                         : [mask] "r"(0x1U << 2U), [reg] "i"(0x0)
+                         : "memory");
 }
 
 /**
@@ -126,11 +122,7 @@ static inline void arch_local_irq_restore(unsigned long flags)
 static inline unsigned long arch_local_save_flags(void)
 {
     unsigned int flags;
-    __asm__ __volatile__(
-        "csrrd %[val], %[reg]\n\t"
-        : [val] "=r" (flags)
-        : [reg] "i" (0x0)
-        : "memory");
+    __asm__ __volatile__("csrrd %[val], %[reg]\n\t" : [val] "=r"(flags) : [reg] "i"(0x0) : "memory");
     return (unsigned long)flags;
 }
 
@@ -170,57 +162,70 @@ static inline int arch_irqs_disabled(void)
 /**
  * @brief CPU中断使能宏
  */
-#define arch_cpu_int_enable()    do { arch_local_irq_enable(); } while (0)
+#define arch_cpu_int_enable()    \
+    do                           \
+    {                            \
+        arch_local_irq_enable(); \
+    } while (0)
 
 /**
  * @brief CPU中断禁用宏
  */
-#define arch_cpu_int_disable()    do { arch_local_irq_disable(); } while (0)
+#define arch_cpu_int_disable()    \
+    do                            \
+    {                             \
+        arch_local_irq_disable(); \
+    } while (0)
 
 /**
  * @brief 保存中断标志宏
  */
-#define raw_local_irq_save(flags)            \
-    do                        \
-    {                        \
-        flags = arch_local_irq_save();        \
+#define raw_local_irq_save(flags)      \
+    do                                 \
+    {                                  \
+        flags = arch_local_irq_save(); \
     } while (0)
 
 /**
  * @brief 恢复中断标志宏
  */
-#define raw_local_irq_restore(flags)            \
-    do                        \
-    {                        \
-        arch_local_irq_restore(flags);        \
+#define raw_local_irq_restore(flags)   \
+    do                                 \
+    {                                  \
+        arch_local_irq_restore(flags); \
     } while (0)
 
 /**
  * @brief 保存中断标志到变量宏
  */
-#define raw_local_save_flags(flags)            \
-    do                        \
-    {                        \
-        flags = arch_local_save_flags();        \
+#define raw_local_save_flags(flags)      \
+    do                                   \
+    {                                    \
+        flags = arch_local_save_flags(); \
     } while (0)
 
 /**
  * @brief 检查中断标志是否禁用宏
  */
-#define raw_irqs_disabled_flags(flags)            \
-    ({                        \
-        arch_irqs_disabled_flags(flags);        \
-    })
+#define raw_irqs_disabled_flags(flags) ({ arch_irqs_disabled_flags(flags); })
 
 /**
  * @brief 禁止CPU中断宏
  */
-#define arch_cpu_int_save(flags)    do { raw_local_irq_save(flags); } while (0)
+#define arch_cpu_int_save(flags)   \
+    do                             \
+    {                              \
+        raw_local_irq_save(flags); \
+    } while (0)
 
 /**
  * @brief 恢复CPU中断宏
  */
-#define arch_cpu_int_restore(flags)    do { raw_local_irq_restore(flags); } while (0)
+#define arch_cpu_int_restore(flags)   \
+    do                                \
+    {                                 \
+        raw_local_irq_restore(flags); \
+    } while (0)
 
 /** @} */
 

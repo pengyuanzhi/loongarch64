@@ -13,11 +13,11 @@
  *
  * @copyright Copyright (c) 2025 Intewell Team
  */
-/************************头 文 件******************************/
+/*************************** 头文件包含 ****************************/
 #include <context.h>
 #include <ttos.h>
 #include <ttosInterHal.h>
-/************************函数实现******************************/
+/*************************** 函数实现 ****************************/
 /**
  * @brief 保存CPU状态到任务控制块
  *
@@ -35,6 +35,7 @@ void arch_context_save_cpu_state(T_TTOS_TaskControlBlock *task, long msr)
 {
     task->switchContext.vintflag = msr;
 }
+
 /**
  * @brief 从任务控制块恢复CPU状态
  *

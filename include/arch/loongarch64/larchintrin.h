@@ -82,15 +82,10 @@ typedef struct rdtime
  * @note 仅在__loongarch64定义时可用
  */
 #ifdef __loongarch64
-extern __inline __drdtime_t
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__rdtime_d (void)
+extern __inline __drdtime_t __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __rdtime_d(void)
 {
     __drdtime_t __drdtime;
-    __asm__ volatile (
-        "rdtime.d\t%[val],%[tid]\n\t"
-        : [val]"=&r"(__drdtime.dvalue),[tid]"=&r"(__drdtime.dtimeid)
-        :);
+    __asm__ volatile("rdtime.d\t%[val],%[tid]\n\t" : [val] "=&r"(__drdtime.dvalue), [tid] "=&r"(__drdtime.dtimeid) :);
     return __drdtime;
 }
 #endif
@@ -102,15 +97,10 @@ __rdtime_d (void)
  *
  * @return 返回字时间结构
  */
-extern __inline __rdtime_t
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__rdtimeh_w (void)
+extern __inline __rdtime_t __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __rdtimeh_w(void)
 {
     __rdtime_t __rdtime;
-    __asm__ volatile (
-        "rdtimeh.w\t%[val],%[tid]\n\t"
-        : [val]"=&r"(__rdtime.value),[tid]"=&r"(__rdtime.timeid)
-        :);
+    __asm__ volatile("rdtimeh.w\t%[val],%[tid]\n\t" : [val] "=&r"(__rdtime.value), [tid] "=&r"(__rdtime.timeid) :);
     return __rdtime;
 }
 
@@ -121,15 +111,10 @@ __rdtimeh_w (void)
  *
  * @return 返回字时间结构
  */
-extern __inline __rdtime_t
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__rdtimel_w (void)
+extern __inline __rdtime_t __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __rdtimel_w(void)
 {
     __rdtime_t __rdtime;
-    __asm__ volatile (
-        "rdtimel.w\t%[val],%[tid]\n\t"
-        : [val]"=&r"(__rdtime.value),[tid]"=&r"(__rdtime.timeid)
-        :);
+    __asm__ volatile("rdtimel.w\t%[val],%[tid]\n\t" : [val] "=&r"(__rdtime.value), [tid] "=&r"(__rdtime.timeid) :);
     return __rdtime;
 }
 
@@ -149,7 +134,7 @@ __rdtimel_w (void)
  *
  * @return 返回FCSR的值
  */
-#define __movfcsr2gr(_1)    __builtin_loongarch_movfcsr2gr((_1));
+#define __movfcsr2gr(_1) __builtin_loongarch_movfcsr2gr((_1));
 
 /**
  * @brief 从通用寄存器移动到FCSR
@@ -159,8 +144,7 @@ __rdtimel_w (void)
  * @param _1 FCSR寄存器编号（0-3）
  * @param _2 要写入的值
  */
-#define __movgr2fcsr(_1, _2)    \
-    __builtin_loongarch_movgr2fcsr((_1), (unsigned int)_2);
+#define __movgr2fcsr(_1, _2) __builtin_loongarch_movgr2fcsr((_1), (unsigned int)_2);
 
 /** @} */
 
@@ -179,8 +163,7 @@ __rdtimel_w (void)
  * @param _3 偏移量（si12）
  */
 #if defined __loongarch64
-#define __cacop_d(_1, _2, _3)    \
-    ((void) __builtin_loongarch_cacop_d((_1), (unsigned long int)(_2), (_3)))
+#define __cacop_d(_1, _2, _3) ((void)__builtin_loongarch_cacop_d((_1), (unsigned long int)(_2), (_3)))
 #else
 #error "Unsupported ABI."
 #endif
@@ -201,11 +184,10 @@ __rdtimel_w (void)
  *
  * @return 返回配置值
  */
-extern __inline unsigned int
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__cpucfg (unsigned int _1)
+extern __inline unsigned int __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+__cpucfg(unsigned int _1)
 {
-    return (unsigned int) __builtin_loongarch_cpucfg ((unsigned int)_1);
+    return (unsigned int)__builtin_loongarch_cpucfg((unsigned int)_1);
 }
 
 /** @} */
@@ -225,10 +207,9 @@ __cpucfg (unsigned int _1)
  */
 #ifdef __loongarch64
 extern __inline void
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__asrtle_d (long int _1, long int _2)
+    __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __asrtle_d(long int _1, long int _2)
 {
-    __builtin_loongarch_asrtle_d ((long int)_1, (long int)_2);
+    __builtin_loongarch_asrtle_d((long int)_1, (long int)_2);
 }
 
 /**
@@ -239,11 +220,10 @@ __asrtle_d (long int _1, long int _2)
  * @param _1 第一个操作数
  * @param _2 第二个操作数
  */
-extern __inline void
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__asrtgt_d (long int _1, long int _2)
+extern __inline void __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __asrtgt_d(long int _1,
+                                                                                                   long int _2)
 {
-    __builtin_loongarch_asrtgt_d ((long int)_1, (long int)_2);
+    __builtin_loongarch_asrtgt_d((long int)_1, (long int)_2);
 }
 #endif
 
@@ -265,8 +245,7 @@ __asrtgt_d (long int _1, long int _2)
  * @return 返回目录项地址
  */
 #if defined __loongarch64
-#define __lddir_d(_1, _2)    \
-    ((long int) __builtin_loongarch_lddir_d((long int)(_1), (_2)))
+#define __lddir_d(_1, _2) ((long int)__builtin_loongarch_lddir_d((long int)(_1), (_2)))
 #else
 #error "Unsupported ABI."
 #endif
@@ -280,8 +259,7 @@ __asrtgt_d (long int _1, long int _2)
  * @param _2 层级
  */
 #if defined __loongarch64
-#define __ldpte_d(_1, _2)    \
-    ((void) __builtin_loongarch_ldpte_d((long int)(_1), (_2)))
+#define __ldpte_d(_1, _2) ((void)__builtin_loongarch_ldpte_d((long int)(_1), (_2)))
 #else
 #error "Unsupported ABI."
 #endif
@@ -301,11 +279,9 @@ __asrtgt_d (long int _1, long int _2)
  *
  * @return 返回CRC结果
  */
-extern __inline int
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__crc_w_b_w (char _1, int _2)
+extern __inline int __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __crc_w_b_w(char _1, int _2)
 {
-    return (int) __builtin_loongarch_crc_w_b_w ((char)_1, (int)_2);
+    return (int)__builtin_loongarch_crc_w_b_w((char)_1, (int)_2);
 }
 
 /**
@@ -316,11 +292,9 @@ __crc_w_b_w (char _1, int _2)
  *
  * @return 返回CRC结果
  */
-extern __inline int
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__crc_w_h_w (short _1, int _2)
+extern __inline int __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __crc_w_h_w(short _1, int _2)
 {
-    return (int) __builtin_loongarch_crc_w_h_w ((short)_1, (int)_2);
+    return (int)__builtin_loongarch_crc_w_h_w((short)_1, (int)_2);
 }
 
 /**
@@ -331,11 +305,9 @@ __crc_w_h_w (short _1, int _2)
  *
  * @return 返回CRC结果
  */
-extern __inline int
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__crc_w_w_w (int _1, int _2)
+extern __inline int __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __crc_w_w_w(int _1, int _2)
 {
-    return (int) __builtin_loongarch_crc_w_w_w ((int)_1, (int)_2);
+    return (int)__builtin_loongarch_crc_w_w_w((int)_1, (int)_2);
 }
 
 /**
@@ -347,11 +319,9 @@ __crc_w_w_w (int _1, int _2)
  * @return 返回CRC结果
  */
 #ifdef __loongarch64
-extern __inline int
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__crc_w_d_w (long int _1, int _2)
+extern __inline int __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __crc_w_d_w(long int _1, int _2)
 {
-    return (int) __builtin_loongarch_crc_w_d_w ((long int)_1, (int)_2);
+    return (int)__builtin_loongarch_crc_w_d_w((long int)_1, (int)_2);
 }
 #endif
 
@@ -363,11 +333,9 @@ __crc_w_d_w (long int _1, int _2)
  *
  * @return 返回CRC结果
  */
-extern __inline int
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__crcc_w_b_w (char _1, int _2)
+extern __inline int __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __crcc_w_b_w(char _1, int _2)
 {
-    return (int) __builtin_loongarch_crcc_w_b_w ((char)_1, (int)_2);
+    return (int)__builtin_loongarch_crcc_w_b_w((char)_1, (int)_2);
 }
 
 /**
@@ -378,11 +346,9 @@ __crcc_w_b_w (char _1, int _2)
  *
  * @return 返回CRC结果
  */
-extern __inline int
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__crcc_w_h_w (short _1, int _2)
+extern __inline int __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __crcc_w_h_w(short _1, int _2)
 {
-    return (int) __builtin_loongarch_crcc_w_h_w ((short)_1, (int)_2);
+    return (int)__builtin_loongarch_crcc_w_h_w((short)_1, (int)_2);
 }
 
 /**
@@ -393,11 +359,9 @@ __crcc_w_h_w (short _1, int _2)
  *
  * @return 返回CRC结果
  */
-extern __inline int
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__crcc_w_w_w (int _1, int _2)
+extern __inline int __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __crcc_w_w_w(int _1, int _2)
 {
-    return (int) __builtin_loongarch_crcc_w_w_w ((int)_1, (int)_2);
+    return (int)__builtin_loongarch_crcc_w_w_w((int)_1, (int)_2);
 }
 
 /**
@@ -409,11 +373,9 @@ __crcc_w_w_w (int _1, int _2)
  * @return 返回CRC结果
  */
 #ifdef __loongarch64
-extern __inline int
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__crcc_w_d_w (long int _1, int _2)
+extern __inline int __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __crcc_w_d_w(long int _1, int _2)
 {
-    return (int) __builtin_loongarch_crcc_w_d_w ((long int)_1, (int)_2);
+    return (int)__builtin_loongarch_crcc_w_d_w((long int)_1, (int)_2);
 }
 #endif
 
@@ -431,8 +393,7 @@ __crcc_w_d_w (long int _1, int _2)
  *
  * @return 返回CSR值
  */
-#define __csrrd_w(_1)    \
-    ((unsigned int) __builtin_loongarch_csrrd_w((_1)))
+#define __csrrd_w(_1) ((unsigned int)__builtin_loongarch_csrrd_w((_1)))
 
 /**
  * @brief 写入CSR寄存器（字）
@@ -442,8 +403,7 @@ __crcc_w_d_w (long int _1, int _2)
  *
  * @return 返回写入的值
  */
-#define __csrwr_w(_1, _2)    \
-    ((unsigned int) __builtin_loongarch_csrwr_w((unsigned int)(_1), (_2)))
+#define __csrwr_w(_1, _2) ((unsigned int)__builtin_loongarch_csrwr_w((unsigned int)(_1), (_2)))
 
 /**
  * @brief CSR交换操作（字）
@@ -454,9 +414,8 @@ __crcc_w_d_w (long int _1, int _2)
  *
  * @return 返回操作前的值
  */
-#define __csrxchg_w(_1, _2, _3)    \
-    ((unsigned int) __builtin_loongarch_csrxchg_w((unsigned int)(_1),    \
-                                                   (unsigned int)(_2), (_3)))
+#define __csrxchg_w(_1, _2, _3) \
+    ((unsigned int)__builtin_loongarch_csrxchg_w((unsigned int)(_1), (unsigned int)(_2), (_3)))
 
 /**
  * @brief 读取CSR寄存器（双字）
@@ -466,8 +425,7 @@ __crcc_w_d_w (long int _1, int _2)
  * @return 返回CSR值
  */
 #ifdef __loongarch64
-#define __csrrd_d(_1)    \
-    ((unsigned long int) __builtin_loongarch_csrrd_d((_1)))
+#define __csrrd_d(_1) ((unsigned long int)__builtin_loongarch_csrrd_d((_1)))
 
 /**
  * @brief 写入CSR寄存器（双字）
@@ -477,9 +435,7 @@ __crcc_w_d_w (long int _1, int _2)
  *
  * @return 返回写入的值
  */
-#define __csrwr_d(_1, _2)    \
-    ((unsigned long int) __builtin_loongarch_csrwr_d((unsigned long int)(_1),    \
-                                                      (_2)))
+#define __csrwr_d(_1, _2) ((unsigned long int)__builtin_loongarch_csrwr_d((unsigned long int)(_1), (_2)))
 
 /**
  * @brief CSR交换操作（双字）
@@ -490,9 +446,8 @@ __crcc_w_d_w (long int _1, int _2)
  *
  * @return 返回操作前的值
  */
-#define __csrxchg_d(_1, _2, _3)    \
-    ((unsigned long int) __builtin_loongarch_csrxchg_d(    \
-        (unsigned long int)(_1), (unsigned long int)(_2), (_3)))
+#define __csrxchg_d(_1, _2, _3) \
+    ((unsigned long int)__builtin_loongarch_csrxchg_d((unsigned long int)(_1), (unsigned long int)(_2), (_3)))
 #endif
 
 /** @} */
@@ -509,11 +464,10 @@ __crcc_w_d_w (long int _1, int _2)
  *
  * @return 返回读取值
  */
-extern __inline unsigned char
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__iocsrrd_b (unsigned int _1)
+extern __inline unsigned char __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+__iocsrrd_b(unsigned int _1)
 {
-    return (unsigned char) __builtin_loongarch_iocsrrd_b ((unsigned int)_1);
+    return (unsigned char)__builtin_loongarch_iocsrrd_b((unsigned int)_1);
 }
 
 /**
@@ -523,11 +477,10 @@ __iocsrrd_b (unsigned int _1)
  *
  * @return 返回读取值
  */
-extern __inline unsigned char
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__iocsrrd_h (unsigned int _1)
+extern __inline unsigned char __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+__iocsrrd_h(unsigned int _1)
 {
-    return (unsigned short) __builtin_loongarch_iocsrrd_h ((unsigned int)_1);
+    return (unsigned short)__builtin_loongarch_iocsrrd_h((unsigned int)_1);
 }
 
 /**
@@ -537,11 +490,10 @@ __iocsrrd_h (unsigned int _1)
  *
  * @return 返回读取值
  */
-extern __inline unsigned int
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__iocsrrd_w (unsigned int _1)
+extern __inline unsigned int __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+__iocsrrd_w(unsigned int _1)
 {
-    return (unsigned int) __builtin_loongarch_iocsrrd_w ((unsigned int)_1);
+    return (unsigned int)__builtin_loongarch_iocsrrd_w((unsigned int)_1);
 }
 
 /**
@@ -553,10 +505,9 @@ __iocsrrd_w (unsigned int _1)
  */
 #ifdef __loongarch64
 extern __inline unsigned long int
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__iocsrrd_d (unsigned int _1)
+    __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __iocsrrd_d(unsigned int _1)
 {
-    return (unsigned long int) __builtin_loongarch_iocsrrd_d ((unsigned int)_1);
+    return (unsigned long int)__builtin_loongarch_iocsrrd_d((unsigned int)_1);
 }
 #endif
 
@@ -566,11 +517,10 @@ __iocsrrd_d (unsigned int _1)
  * @param _1 要写入的值
  * @param _2 IOCSR端口
  */
-extern __inline void
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__iocsrwr_b (unsigned char _1, unsigned int _2)
+extern __inline void __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __iocsrwr_b(unsigned char _1,
+                                                                                                    unsigned int _2)
 {
-    __builtin_loongarch_iocsrwr_b ((unsigned char)_1, (unsigned int)_2);
+    __builtin_loongarch_iocsrwr_b((unsigned char)_1, (unsigned int)_2);
 }
 
 /**
@@ -579,11 +529,10 @@ __iocsrwr_b (unsigned char _1, unsigned int _2)
  * @param _1 要写入的值
  * @param _2 IOCSR端口
  */
-extern __inline void
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__iocsrwr_h (unsigned short _1, unsigned int _2)
+extern __inline void __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __iocsrwr_h(unsigned short _1,
+                                                                                                    unsigned int _2)
 {
-    __builtin_loongarch_iocsrwr_h ((unsigned short)_1, (unsigned int)_2);
+    __builtin_loongarch_iocsrwr_h((unsigned short)_1, (unsigned int)_2);
 }
 
 /**
@@ -592,11 +541,10 @@ __iocsrwr_h (unsigned short _1, unsigned int _2)
  * @param _1 要写入的值
  * @param _2 IOCSR端口
  */
-extern __inline void
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__iocsrwr_w (unsigned int _1, unsigned int _2)
+extern __inline void __attribute__((__gnu_inline__, __always_inline__, __artificial__)) __iocsrwr_w(unsigned int _1,
+                                                                                                    unsigned int _2)
 {
-    __builtin_loongarch_iocsrwr_w ((unsigned int)_1, (unsigned int)_2);
+    __builtin_loongarch_iocsrwr_w((unsigned int)_1, (unsigned int)_2);
 }
 
 /**
@@ -606,11 +554,10 @@ __iocsrwr_w (unsigned int _1, unsigned int _2)
  * @param _2 IOCSR端口
  */
 #ifdef __loongarch64
-extern __inline void
-__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-__iocsrwr_d (unsigned long int _1, unsigned int _2)
+extern __inline void __attribute__((__gnu_inline__, __always_inline__,
+                                    __artificial__)) __iocsrwr_d(unsigned long int _1, unsigned int _2)
 {
-    __builtin_loongarch_iocsrwr_d ((unsigned long int)_1, (unsigned int)_2);
+    __builtin_loongarch_iocsrwr_d((unsigned long int)_1, (unsigned int)_2);
 }
 #endif
 
@@ -628,7 +575,7 @@ __iocsrwr_d (unsigned long int _1, unsigned int _2)
  *
  * @param _1 屏蔽类型编码
  */
-#define __dbar(_1)    __builtin_loongarch_dbar((_1))
+#define __dbar(_1) __builtin_loongarch_dbar((_1))
 
 /**
  * @brief 指令屏障
@@ -637,7 +584,7 @@ __iocsrwr_d (unsigned long int _1, unsigned int _2)
  *
  * @param _1 屏蔽类型编码
  */
-#define __ibar(_1)    __builtin_loongarch_ibar((_1))
+#define __ibar(_1) __builtin_loongarch_ibar((_1))
 
 /** @} */
 
@@ -653,7 +600,7 @@ __iocsrwr_d (unsigned long int _1, unsigned int _2)
  *
  * @param _1 系统调用编号
  */
-#define __syscall(_1)    __builtin_loongarch_syscall((_1))
+#define __syscall(_1) __builtin_loongarch_syscall((_1))
 
 /**
  * @brief 断点异常
@@ -662,13 +609,14 @@ __iocsrwr_d (unsigned long int _1, unsigned int _2)
  *
  * @param _1 断点编号
  */
-#define __break(_1)    __builtin_loongarch_break((_1))
+#define __break(_1) __builtin_loongarch_break((_1))
 
 /** @} */
 
 /************************C++兼容性******************************/
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #ifdef __cplusplus

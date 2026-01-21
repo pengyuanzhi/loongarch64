@@ -20,9 +20,9 @@
 #define _IPI_H
 
 /************************头 文 件******************************/
+#include <driver/lsnIntCtlr.h>
 #include <stdbool.h>
 #include <system/types.h>
-#include <driver/lsnIntCtlr.h>
 
 /************************宏 定 义******************************/
 
@@ -34,12 +34,12 @@
 /**
  * @brief 通用IPI调度中断
  */
-#define GENERAL_IPI_SCHED    (CPU_IPI0 + 1U)
+#define GENERAL_IPI_SCHED (CPU_IPI0 + 1U)
 
 /**
  * @brief 通用IPI调用中断
  */
-#define GENERAL_IPI_CALL     (CPU_IPI0 + 2U)
+#define GENERAL_IPI_CALL (CPU_IPI0 + 2U)
 
 /** @} */
 

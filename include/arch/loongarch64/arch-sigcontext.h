@@ -31,16 +31,16 @@
  * @defgroup SigContextFlags 信号上下文标志
  * @{
  */
-#define SC_USED_FP        (1U << 0)  /**< 使用了FPU上下文 */
-#define SC_ADDRERR_RD     (1U << 30) /**< 地址错误由加载引起 */
-#define SC_ADDRERR_WR     (1U << 31) /**< 地址错误由存储引起 */
+#define SC_USED_FP (1U << 0)     /**< 使用了FPU上下文 */
+#define SC_ADDRERR_RD (1U << 30) /**< 地址错误由加载引起 */
+#define SC_ADDRERR_WR (1U << 31) /**< 地址错误由存储引起 */
 /** @} */
 
 /**
  * @defgroup ContextAlign 上下文对齐
  * @{
  */
-#define CONTEXT_INFO_ALIGN    16U /**< 上下文信息对齐（字节） */
+#define CONTEXT_INFO_ALIGN 16U /**< 上下文信息对齐（字节） */
 /** @} */
 
 /************************类型定义******************************/
@@ -52,9 +52,9 @@
  */
 struct sctx_info
 {
-    u32 magic;     /**< 魔数，标识上下文类型 */
-    u32 size;      /**< 上下文结构大小 */
-    u64 padding;   /**< 填充到16字节边界 */
+    u32 magic;   /**< 魔数，标识上下文类型 */
+    u32 size;    /**< 上下文结构大小 */
+    u64 padding; /**< 填充到16字节边界 */
 };
 
 /**
@@ -65,12 +65,12 @@ struct sctx_info
 /**
  * @brief FPU上下文魔数
  */
-#define FPU_CTX_MAGIC    0x46505501U
+#define FPU_CTX_MAGIC 0x46505501U
 
 /**
  * @brief FPU上下文对齐
  */
-#define FPU_CTX_ALIGN    8U
+#define FPU_CTX_ALIGN 8U
 
 /**
  * @brief FPU上下文结构
@@ -96,12 +96,12 @@ struct fpu_context
  *
  * @details LSX: LoongArch SIMD Extension（128位SIMD）
  */
-#define LSX_CTX_MAGIC    0x53580001U
+#define LSX_CTX_MAGIC 0x53580001U
 
 /**
  * @brief LSX上下文对齐
  */
-#define LSX_CTX_ALIGN    16U
+#define LSX_CTX_ALIGN 16U
 
 /**
  * @brief LSX上下文结构
@@ -127,12 +127,12 @@ struct lsx_context
  *
  * @details LASX: LoongArch Advanced SIMD Extension（256位SIMD）
  */
-#define LASX_CTX_MAGIC    0x41535801U
+#define LASX_CTX_MAGIC 0x41535801U
 
 /**
  * @brief LASX上下文对齐
  */
-#define LASX_CTX_ALIGN    32U
+#define LASX_CTX_ALIGN 32U
 
 /**
  * @brief LASX上下文结构
@@ -158,12 +158,12 @@ struct lasx_context
  *
  * @details LBT: LoongArch Binary Translation
  */
-#define LBT_CTX_MAGIC    0x42540001U
+#define LBT_CTX_MAGIC 0x42540001U
 
 /**
  * @brief LBT上下文对齐
  */
-#define LBT_CTX_ALIGN    8U
+#define LBT_CTX_ALIGN 8U
 
 /**
  * @brief LBT上下文结构

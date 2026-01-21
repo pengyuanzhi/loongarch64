@@ -35,7 +35,7 @@
  *
  * @details 258是LoongArch在ELF规范中的机器类型标识
  */
-#define EM_ARCH    258U
+#define EM_ARCH 258U
 
 /** @} */
 
@@ -59,7 +59,7 @@
  *          - ESTAT: 异常状态寄存器
  *          - Reserved: 5个保留字段
  */
-#define ELF_NGREG    45U
+#define ELF_NGREG 45U
 
 /**
  * @brief 浮点寄存器数量
@@ -69,7 +69,7 @@
  *          - FCC: 浮点条件码
  *          - FCSR: 浮点控制状态寄存器
  */
-#define ELF_NFPREG    34U
+#define ELF_NFPREG 34U
 
 /** @} */
 

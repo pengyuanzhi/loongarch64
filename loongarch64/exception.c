@@ -17,46 +17,48 @@
  *
  * @copyright Copyright (c) 2025 AISafe64 Team
  */
-/************************头 文 件******************************/
+
+/*************************** 头文件包含 ****************************/
+#include "ttosMM.h"
+
+#include <barrier.h>
 #include <context.h>
 #include <cpu.h>
-#include <stdio.h>
+#include <exception.h>
+#include <inttypes.h>
 #include <math.h>
-#include <barrier.h>
-#include <tlb.h>
-#include "ttosMM.h"
-#include <context.h>
 #include <process_signal.h>
 #include <ptrace/ptrace.h>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <symtab.h>
 #include <syscalls.h>
+#include <tlb.h>
+#include <trace/tracing.h>
 #include <ttos.h>
-#include <ttosInterTask.inl>
 #include <ttosProcess.h>
 #include <ttos_pic.h>
-#include <exception.h>
-#include <symtab.h>
 #include <uaccess.h>
-#include <inttypes.h>
-#include <trace/tracing.h>
+
+#include <ttosInterTask.inl>
 #define KLOG_LEVEL KLOG_INFO
 #undef KLOG_TAG
 #define KLOG_TAG "Exception"
 #include <klog.h>
-/************************外部声明******************************/
+
+/*************************** 外部变量声明 ****************************/
 extern size_t intNestLevel[CONFIG_MAX_CPUS];
 void ttosSchedule(void);
 extern syscall_func syscall_table[CONFIG_SYSCALL_NUM];
 extern syscall_func syscall_extent_table[CONFIG_EXTENT_SYSCALL_NUM];
-/************************前向声明******************************/
-/************************模块变量******************************/
-/************************全局变量******************************/
-unsigned long eentry; /*normal exception entry */
+
+/*************************** 全局变量 ****************************/
+unsigned long eentry;    /* normal exception entry */
 unsigned long tlbrentry; /* tlb exception entry */
 long exception_handlers[VECSIZE * 128 / sizeof(long)] __attribute__((__aligned__(SZ_64K)));
-/************************函数实现******************************/
+
+/*************************** 函数实现 ****************************/
 /**
  * @brief 异常向量表
  *
@@ -67,29 +69,28 @@ long exception_handlers[VECSIZE * 128 / sizeof(long)] __attribute__((__aligned__
  *          - 浮点和SIMD：FPU、LSX、LASX、FPE
  *          - 其他：断点、保留指令、观察点等
  */
-void *exception_table[EXCCODE_INT_START] =
-{
+void *exception_table[EXCCODE_INT_START] = {
     [0 ... EXCCODE_INT_START - 1] = handle_reserved,
-    [EXCCODE_TLBI]      = handle_tlb_load,       /**< TLB加载异常 */
-    [EXCCODE_TLBL]      = handle_tlb_load,       /**< TLB加载异常 */
-    [EXCCODE_TLBS]      = handle_tlb_store,      /**< TLB存储异常 */
-    [EXCCODE_TLBM]      = handle_tlb_modify,     /**< TLB修改异常 */
-    [EXCCODE_TLBNR]     = handle_tlb_protect0,   /**< TLB保护异常0 */
-    [EXCCODE_TLBNX]     = handle_tlb_protect1,   /**< TLB保护异常1 */
-    [EXCCODE_TLBPE]     = handle_tlb_protect2,   /**< TLB保护异常2 */
-    [EXCCODE_ADE]       = handle_ade,            /**< 地址错误异常 */
-    [EXCCODE_ALE]       = handle_ale,            /**< 对齐错误异常 */
-    [EXCCODE_BCE]       = handle_bce,            /**< 边界检查异常 */
-    [EXCCODE_SYS]       = handle_sys,            /**< 系统调用 */
-    [EXCCODE_BP]        = handle_bp,             /**< 断点异常 */
-    [EXCCODE_INE]       = handle_ri,             /**< 保留指令异常 */
-    [EXCCODE_IPE]       = handle_ri,             /**< 保留指令异常 */
-    [EXCCODE_FPDIS]     = handle_fpu,            /**< FPU禁用异常 */
-    [EXCCODE_LSXDIS]    = handle_lsx,            /**< LSX禁用异常 */
-    [EXCCODE_LASXDIS]   = handle_lasx,           /**< LASX禁用异常 */
-    [EXCCODE_FPE]       = handle_fpe,            /**< 浮点异常 */
-    [EXCCODE_WATCH]     = handle_watch,          /**< 观察点异常 */
-    [EXCCODE_BTDIS]     = handle_lbt,            /**< LBT禁用异常 */
+    [EXCCODE_TLBI] = handle_tlb_load,      /**< TLB加载异常 */
+    [EXCCODE_TLBL] = handle_tlb_load,      /**< TLB加载异常 */
+    [EXCCODE_TLBS] = handle_tlb_store,     /**< TLB存储异常 */
+    [EXCCODE_TLBM] = handle_tlb_modify,    /**< TLB修改异常 */
+    [EXCCODE_TLBNR] = handle_tlb_protect0, /**< TLB保护异常0 */
+    [EXCCODE_TLBNX] = handle_tlb_protect1, /**< TLB保护异常1 */
+    [EXCCODE_TLBPE] = handle_tlb_protect2, /**< TLB保护异常2 */
+    [EXCCODE_ADE] = handle_ade,            /**< 地址错误异常 */
+    [EXCCODE_ALE] = handle_ale,            /**< 对齐错误异常 */
+    [EXCCODE_BCE] = handle_bce,            /**< 边界检查异常 */
+    [EXCCODE_SYS] = handle_sys,            /**< 系统调用 */
+    [EXCCODE_BP] = handle_bp,              /**< 断点异常 */
+    [EXCCODE_INE] = handle_ri,             /**< 保留指令异常 */
+    [EXCCODE_IPE] = handle_ri,             /**< 保留指令异常 */
+    [EXCCODE_FPDIS] = handle_fpu,          /**< FPU禁用异常 */
+    [EXCCODE_LSXDIS] = handle_lsx,         /**< LSX禁用异常 */
+    [EXCCODE_LASXDIS] = handle_lasx,       /**< LASX禁用异常 */
+    [EXCCODE_FPE] = handle_fpe,            /**< 浮点异常 */
+    [EXCCODE_WATCH] = handle_watch,        /**< 观察点异常 */
+    [EXCCODE_BTDIS] = handle_lbt,          /**< LBT禁用异常 */
 };
 void local_flush_icache_range(unsigned long start, unsigned long end);
 /**
@@ -149,7 +150,7 @@ static inline void setup_vint_size(unsigned int size)
  */
 static void configure_exception_vector(void)
 {
-    eentry    = (unsigned long)exception_handlers;
+    eentry = (unsigned long)exception_handlers;
     tlbrentry = (unsigned long)exception_handlers + 80U * VECSIZE;
     csr_write64(eentry, LOONGARCH_CSR_EENTRY);
     csr_write64(eentry, LOONGARCH_CSR_MERRENTRY);
@@ -321,7 +322,7 @@ static bool is_user_mode(arch_int_context_t *context)
  */
 void set_context_type(struct arch_context *context, int type)
 {
-    context->type   = type;
+    context->type = type;
     context->orig_a0 = context->regs[4];
 }
 /**
@@ -463,9 +464,8 @@ void do_syscall(arch_exception_context_t *context)
         }
         else
         {
-            ret = syscall_extent_table[syscall_num](context->orig_a0, context->regs[5],
-                                                     context->regs[6], context->regs[7],
-                                                     context->regs[8], context->regs[9]);
+            ret = syscall_extent_table[syscall_num](context->orig_a0, context->regs[5], context->regs[6],
+                                                    context->regs[7], context->regs[8], context->regs[9]);
         }
         context->regs[4] = (uint64_t)ret;
         return;
@@ -484,11 +484,9 @@ void do_syscall(arch_exception_context_t *context)
         }
         else if (syscall_table[syscall_num] != NULL)
         {
-            TRACING_EVENT_ENTER(syscall, syscall_num, syscall_getname(syscall_num),
-                              context->orig_a0, context->regs[5], context->regs[6],
-                              context->regs[7], context->regs[8], context->regs[9]);
-            ret = syscall_table[syscall_num](context->orig_a0, context->regs[5],
-                                             context->regs[6], context->regs[7],
+            TRACING_EVENT_ENTER(syscall, syscall_num, syscall_getname(syscall_num), context->orig_a0, context->regs[5],
+                                context->regs[6], context->regs[7], context->regs[8], context->regs[9]);
+            ret = syscall_table[syscall_num](context->orig_a0, context->regs[5], context->regs[6], context->regs[7],
                                              context->regs[8], context->regs[9]);
             context->regs[4] = (uint64_t)ret;
             TRACING_EVENT_EXIT(syscall, syscall_getname(syscall_num), context->regs[4]);

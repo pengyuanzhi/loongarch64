@@ -16,15 +16,18 @@
  *
  * @copyright Copyright (c) 2025 Intewell Team
  */
-/************************头 文 件******************************/
+/*************************** 头文件包含 ****************************/
 #include <asm_offsets_build.h>
 #define _HARD_FLOAT_
 #include <context.h>
 #include <ttos.h>
 int main(void)
 {
-    DEFINE(ARCH_CONTEXT_SIZE,       sizeof(struct arch_context));
+    DEFINE(ARCH_CONTEXT_SIZE, sizeof(struct arch_context));
+
+    return 0;
 }
+
 static void __attribute__((__used__)) output_ptreg_defines(void)
 {
     COMMENT("LoongArch arch_context offsets.");
@@ -105,7 +108,7 @@ static void __attribute__((__used__)) output_thread_fpu_defines(void)
     OFFSET(THREAD_FPR30, loongarch_fpu, fpr[30]);
     OFFSET(THREAD_FPR31, loongarch_fpu, fpr[31]);
     OFFSET(THREAD_FCSR, loongarch_fpu, fcsr);
-    OFFSET(THREAD_FCC,  loongarch_fpu, fcc);
+    OFFSET(THREAD_FCC, loongarch_fpu, fcc);
     OFFSET(THREAD_FTOP, loongarch_fpu, ftop);
 }
 static void __attribute__((__used__)) mm_defines(void)
@@ -117,52 +120,52 @@ static void __attribute__((__used__)) output_thread_info_defines(void)
     COMMENT("LoongArch thread_info offsets.");
     DEFINE(_THREAD_SIZE, THREAD_SIZE);
     DEFINE(_THREAD_MASK, THREAD_MASK);
-    OFFSET(THREAD_BADV,task_context,csr_badvaddr);
-    OFFSET(THREAD_CRMD,task_context,csr_crmd);
-    OFFSET(THREAD_PRMD,task_context,csr_prmd);
-    OFFSET(THREAD_EUEN,task_context,csr_euen);
-    OFFSET(THREAD_ECFG,task_context,csr_ecfg);
-    OFFSET(THREAD_ESTAT,task_context,csr_estat);
-    OFFSET(THREAD_PC,task_context,pc);
-    OFFSET(THREAD_SP,task_context,sp);
-    OFFSET(THREAD_TLS,task_context,tls);
-    OFFSET(THREAD_PGDL,task_context,pgdl);
-    OFFSET(THREAD_ASID,task_context,asid);
-    OFFSET(THREAD_VFLAG,task_context,vintflag);
-    OFFSET(THREAD_REG0,task_context,regs[0]);
-    OFFSET(THREAD_REG1,task_context,regs[1]);
-    OFFSET(THREAD_REG2,task_context,regs[2]);
-    OFFSET(THREAD_REG3,task_context,regs[3]);
-    OFFSET(THREAD_REG4,task_context,regs[4]);
-    OFFSET(THREAD_REG5,task_context,regs[5]);
-    OFFSET(THREAD_REG6,task_context,regs[6]);
-    OFFSET(THREAD_REG7,task_context,regs[7]);
-    OFFSET(THREAD_REG8,task_context,regs[8]);
-    OFFSET(THREAD_REG9,task_context,regs[9]);
-    OFFSET(THREAD_REG10,task_context,regs[10]);
-    OFFSET(THREAD_REG11,task_context,regs[11]);
-    OFFSET(THREAD_REG12,task_context,regs[12]);
-    OFFSET(THREAD_REG13,task_context,regs[13]);
-    OFFSET(THREAD_REG14,task_context,regs[14]);
-    OFFSET(THREAD_REG15,task_context,regs[15]);
-    OFFSET(THREAD_REG16,task_context,regs[16]);
-    OFFSET(THREAD_REG17,task_context,regs[17]);
-    OFFSET(THREAD_REG18,task_context,regs[18]);
-    OFFSET(THREAD_REG19,task_context,regs[19]);
-    OFFSET(THREAD_REG20,task_context,regs[20]);
-    OFFSET(THREAD_REG21,task_context,regs[21]);
-    OFFSET(THREAD_REG22,task_context,regs[22]);
-    OFFSET(THREAD_REG23,task_context,regs[23]);
-    OFFSET(THREAD_REG24,task_context,regs[24]);
-    OFFSET(THREAD_REG25,task_context,regs[25]);
-    OFFSET(THREAD_REG26,task_context,regs[26]);
-    OFFSET(THREAD_REG27,task_context,regs[27]);
-    OFFSET(THREAD_REG28,task_context,regs[28]);
-    OFFSET(THREAD_REG29,task_context,regs[29]);
-    OFFSET(THREAD_REG30,task_context,regs[30]);
-    OFFSET(THREAD_REG31,task_context,regs[31]);
+    OFFSET(THREAD_BADV, task_context, csr_badvaddr);
+    OFFSET(THREAD_CRMD, task_context, csr_crmd);
+    OFFSET(THREAD_PRMD, task_context, csr_prmd);
+    OFFSET(THREAD_EUEN, task_context, csr_euen);
+    OFFSET(THREAD_ECFG, task_context, csr_ecfg);
+    OFFSET(THREAD_ESTAT, task_context, csr_estat);
+    OFFSET(THREAD_PC, task_context, pc);
+    OFFSET(THREAD_SP, task_context, sp);
+    OFFSET(THREAD_TLS, task_context, tls);
+    OFFSET(THREAD_PGDL, task_context, pgdl);
+    OFFSET(THREAD_ASID, task_context, asid);
+    OFFSET(THREAD_VFLAG, task_context, vintflag);
+    OFFSET(THREAD_REG0, task_context, regs[0]);
+    OFFSET(THREAD_REG1, task_context, regs[1]);
+    OFFSET(THREAD_REG2, task_context, regs[2]);
+    OFFSET(THREAD_REG3, task_context, regs[3]);
+    OFFSET(THREAD_REG4, task_context, regs[4]);
+    OFFSET(THREAD_REG5, task_context, regs[5]);
+    OFFSET(THREAD_REG6, task_context, regs[6]);
+    OFFSET(THREAD_REG7, task_context, regs[7]);
+    OFFSET(THREAD_REG8, task_context, regs[8]);
+    OFFSET(THREAD_REG9, task_context, regs[9]);
+    OFFSET(THREAD_REG10, task_context, regs[10]);
+    OFFSET(THREAD_REG11, task_context, regs[11]);
+    OFFSET(THREAD_REG12, task_context, regs[12]);
+    OFFSET(THREAD_REG13, task_context, regs[13]);
+    OFFSET(THREAD_REG14, task_context, regs[14]);
+    OFFSET(THREAD_REG15, task_context, regs[15]);
+    OFFSET(THREAD_REG16, task_context, regs[16]);
+    OFFSET(THREAD_REG17, task_context, regs[17]);
+    OFFSET(THREAD_REG18, task_context, regs[18]);
+    OFFSET(THREAD_REG19, task_context, regs[19]);
+    OFFSET(THREAD_REG20, task_context, regs[20]);
+    OFFSET(THREAD_REG21, task_context, regs[21]);
+    OFFSET(THREAD_REG22, task_context, regs[22]);
+    OFFSET(THREAD_REG23, task_context, regs[23]);
+    OFFSET(THREAD_REG24, task_context, regs[24]);
+    OFFSET(THREAD_REG25, task_context, regs[25]);
+    OFFSET(THREAD_REG26, task_context, regs[26]);
+    OFFSET(THREAD_REG27, task_context, regs[27]);
+    OFFSET(THREAD_REG28, task_context, regs[28]);
+    OFFSET(THREAD_REG29, task_context, regs[29]);
+    OFFSET(THREAD_REG30, task_context, regs[30]);
+    OFFSET(THREAD_REG31, task_context, regs[31]);
 #ifdef _HARD_FLOAT_
-    OFFSET(THREAD_FPU,task_context,fpu);
+    OFFSET(THREAD_FPU, task_context, fpu);
 #if 0
     OFFSET(THREAD_FPU_FCC,task_context,fpu.fcc);
     OFFSET(THREAD_FPU_FCSR,task_context,fpu.fcsr);

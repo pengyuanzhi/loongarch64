@@ -16,11 +16,11 @@
  */
 
 /*************************** 头文件包含 ****************************/
-#include <ttos_arch.h>
+#include <arch/loongarch64/regsLoongarch.h>
 #include <cpu.h>
 #include <ttos.h>
 #include <ttosProcess.h>
-#include <arch/loongarch64/regsLoongarch.h>
+#include <ttos_arch.h>
 
 /*************************** 函数实现 ****************************/
 
@@ -47,8 +47,7 @@ int32_t arch_switch_context_set_stack(T_TBSP_TaskContext *ctx, uint64_t sp)
  *
  * @return 成功返回0
  */
-int32_t arch_context_set_return(arch_exception_context_t *context,
-                               uint64_t value)
+int32_t arch_context_set_return(arch_exception_context_t *context, uint64_t value)
 {
     /* a0是函数返回值寄存器（r4） */
     context->regs[REG_A0] = value;
@@ -64,8 +63,7 @@ int32_t arch_context_set_return(arch_exception_context_t *context,
  *
  * @return 成功返回0
  */
-int32_t arch_context_set_stack(arch_exception_context_t *context,
-                              uint64_t value)
+int32_t arch_context_set_stack(arch_exception_context_t *context, uint64_t value)
 {
     /* sp（r3）寄存器用于堆栈指针 */
     context->regs[REG_SP] = value;
@@ -105,8 +103,7 @@ int32_t arch_context_thread_init(arch_exception_context_t *context)
  *
  * @warning 调用方必须保证 index < 32，否则会导致未定义行为
  */
-int64_t arch_context_get_args(arch_exception_context_t *context,
-                               uint32_t index)
+int64_t arch_context_get_args(arch_exception_context_t *context, uint32_t index)
 {
     return context->regs[index];
 }
@@ -124,9 +121,7 @@ int64_t arch_context_get_args(arch_exception_context_t *context,
  *
  * @warning 调用方必须保证 index < 32，否则会导致未定义行为
  */
-void arch_context_set_args(arch_exception_context_t *context,
-                           uint32_t index,
-                           uint64_t value)
+void arch_context_set_args(arch_exception_context_t *context, uint32_t index, uint64_t value)
 {
     context->regs[index] = value;
 }

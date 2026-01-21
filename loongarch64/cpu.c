@@ -16,25 +16,25 @@
  *
  * @copyright Copyright (c) 2025 AISafe64 Team
  */
-/************************头 文 件******************************/
+/*************************** 头文件包含 ****************************/
 #include <cpu.h>
-#include <percpu.h>
-#include <limits.h>
-#include <stdbool.h>
 #include <driver/cpudev.h>
-/************************宏 定 义******************************/
-/************************类型定义******************************/
-/************************全局变量******************************/
+#include <limits.h>
+#include <percpu.h>
+#include <stdbool.h>
+/*************************** 宏定义 ****************************/
+/*************************** 类型定义 ****************************/
+/*************************** 全局变量 ****************************/
 /* MAP BASE */
-unsigned long vm_map_base;        /**< @brief 虚拟内存映射基地址 */
+unsigned long vm_map_base; /**< @brief 虚拟内存映射基地址 */
 /* Virtual Address size in bits */
-unsigned long g_vaBits;           /**< @brief 虚拟地址宽度（位） */
+unsigned long g_vaBits; /**< @brief 虚拟地址宽度（位） */
 /* Physical Address size in bits */
-unsigned long g_paBits;           /**< @brief 物理地址宽度（位） */
-/************************外部声明******************************/
-/************************前向声明******************************/
-/************************模块变量******************************/
-/************************函数实现******************************/
+unsigned long g_paBits; /**< @brief 物理地址宽度（位） */
+/*************************** 外部声明 ****************************/
+/*************************** 前向声明 ****************************/
+/*************************** 模块变量 ****************************/
+/*************************** 函数实现 ****************************/
 /**
  * @brief 设置CPU ID
  *
@@ -49,8 +49,10 @@ unsigned long g_paBits;           /**< @brief 物理地址宽度（位） */
 void cpuid_set(void)
 {
     struct cpudev *cpu = cpu_self_get();
+
     /* TODO: 实现CPU ID设置逻辑 */
 }
+
 /**
  * @brief 获取CPU ID
  *
@@ -66,6 +68,7 @@ u32 cpuid_get(void)
 {
     return (u32)csr_read32(LOONGARCH_CSR_CPUID);
 }
+
 /**
  * @brief 判断是否为启动CPU
  *
@@ -81,8 +84,10 @@ u32 cpuid_get(void)
 bool is_bootcpu(void)
 {
     struct cpudev *cpu = cpu_self_get();
+
     return cpu->boot_cpu;
 }
+
 /**
  * @brief 查找第一个零位
  *
@@ -99,6 +104,7 @@ unsigned long ttos_ffz(unsigned long x)
 {
     return (unsigned long)(__builtin_ffsl(~x) - 1U);
 }
+
 /**
  * @brief 初始化辅助CPU
  *
@@ -115,8 +121,7 @@ unsigned long ttos_ffz(unsigned long x)
  */
 void loongson_init_secondary(void)
 {
-    unsigned int imask = ECFGF_IP0 | ECFGF_IP1 | ECFGF_IP2 |
-                         ECFGF_IPI | ECFGF_PMC | ECFGF_TIMER | ECFGF_SIP0;
+    unsigned int imask = ECFGF_IP0 | ECFGF_IP1 | ECFGF_IP2 | ECFGF_IPI | ECFGF_PMC | ECFGF_TIMER | ECFGF_SIP0;
     change_csr_ecfg(ECFG0_IM, imask);
     iocsr_write32(0xffffffffU, LOONGARCH_IOCSR_IPI_EN);
 }

@@ -16,19 +16,19 @@
  *
  * @copyright Copyright (c) 2025 AISafe64 Team
  */
-/************************头 文 件******************************/
+/*************************** 头文件包含 ****************************/
+#include <cpu.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <system/macros.h>
 #include <system/types.h>
 #include <util.h>
-#include <cpu.h>
-/************************宏 定 义******************************/
-/************************类型定义******************************/
-/************************全局变量******************************/
-/************************外部声明******************************/
+/*************************** 宏定义 ****************************/
+/*************************** 类型定义 ****************************/
+/*************************** 全局变量 ****************************/
+/*************************** 外部声明 ****************************/
 void cache_dcache_flush(size_t vaddr_start, size_t len);
-/************************函数实现******************************/
+/*************************** 函数实现 ****************************/
 /**
  * @brief 更新指令缓存
  *
@@ -49,6 +49,7 @@ void cache_text_update(size_t vaddr_start, size_t len)
     (void)len;
     __asm__ volatile("\tibar 0\n" ::: "memory");
 }
+
 /**
  * @brief 刷新本地指令缓存范围
  *
@@ -69,6 +70,7 @@ void local_flush_icache_range(unsigned long start, unsigned long end)
     (void)end;
     __asm__ volatile("\tibar 0\n" ::: "memory");
 }
+
 /**
  * @brief 刷新所有数据缓存
  *
@@ -84,8 +86,10 @@ void local_flush_icache_range(unsigned long start, unsigned long end)
 int arch_dcache_flush_all(void)
 {
     __asm__ volatile("\tdbar 0\n" ::: "memory");
+
     return 0;
 }
+
 /**
  * @brief 使所有数据缓存无效
  *
@@ -101,8 +105,10 @@ int arch_dcache_flush_all(void)
 int arch_dcache_invd_all(void)
 {
     __asm__ volatile("\tdbar 0\n" ::: "memory");
+
     return 0;
 }
+
 /**
  * @brief 刷新并使所有数据缓存无效
  *
@@ -118,8 +124,10 @@ int arch_dcache_invd_all(void)
 int dcache_flush_and_invd_all(void)
 {
     __asm__ volatile("\tdbar 0\n" ::: "memory");
+
     return 0;
 }
+
 /**
  * @brief 使指定范围的数据缓存无效
  *
@@ -135,8 +143,10 @@ int dcache_flush_and_invd_all(void)
 int dcache_invd_range(void *start_addr, size_t size)
 {
     cache_dcache_flush((size_t)start_addr, size);
+
     return 0;
 }
+
 /**
  * @brief 刷新并使指定范围的数据缓存无效
  *
@@ -155,8 +165,10 @@ int arch_dcache_flush_and_invd_range(void *start_addr, size_t size)
     (void)start_addr;
     (void)size;
     __asm__ volatile("\tdbar 0\n" ::: "memory");
+
     return 0;
 }
+
 /**
  * @brief 使指定范围的数据缓存无效
  *
@@ -173,6 +185,7 @@ void cache_dcache_invalidate(size_t vaddr_start, size_t len)
 {
     cache_dcache_flush(vaddr_start, len);
 }
+
 /**
  * @brief 清理所有数据缓存
  *
@@ -189,6 +202,7 @@ void cache_dcache_clean_all(void)
 {
     __asm__ volatile("\tdbar 0\n" ::: "memory");
 }
+
 /**
  * @brief 清理指定范围的数据缓存
  *
@@ -208,6 +222,7 @@ void cache_dcache_clean(size_t vaddr_start, size_t len)
     (void)len;
     __asm__ volatile("\tdbar 0\n" ::: "memory");
 }
+
 /**
  * @brief 刷新指定范围的数据缓存
  *

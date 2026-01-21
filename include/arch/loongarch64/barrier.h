@@ -62,21 +62,21 @@ extern "C"
  * @brief 完成屏障（Completion Barrier）
  * @{
  */
-#define crwrw        0b00000  /**< 读写完成屏障 */
-#define cr_r_        0b00101  /**< 读完成屏障 */
-#define c_w_w        0b01010  /**< 写完成屏障 */
+#define crwrw 0b00000 /**< 读写完成屏障 */
+#define cr_r_ 0b00101 /**< 读完成屏障 */
+#define c_w_w 0b01010 /**< 写完成屏障 */
 /** @} */
 
 /**
  * @brief 排序屏障（Ordering Barrier）
  * @{
  */
-#define orwrw        0b10000  /**< 读写排序屏障 */
-#define or_r_        0b10101  /**< 读排序屏障 */
-#define o_w_w        0b11010  /**< 写排序屏障 */
+#define orwrw 0b10000 /**< 读写排序屏障 */
+#define or_r_ 0b10101 /**< 读排序屏障 */
+#define o_w_w 0b11010 /**< 写排序屏障 */
 
-#define orw_w        0b10010  /**< 写-读排序屏障 */
-#define or_rw        0b10100  /**< 读-写排序屏障 */
+#define orw_w 0b10010 /**< 写-读排序屏障 */
+#define or_rw 0b10100 /**< 读-写排序屏障 */
 /** @} */
 
 /** @} */ /* end of BarrierHints */
@@ -91,17 +91,17 @@ extern "C"
 /**
  * @brief 完成同步屏障（读写）
  */
-#define c_sync()        DBAR(crwrw)
+#define c_sync() DBAR(crwrw)
 
 /**
  * @brief 读完成同步屏障
  */
-#define c_rsync()       DBAR(cr_r_)
+#define c_rsync() DBAR(cr_r_)
 
 /**
  * @brief 写完成同步屏障
  */
-#define c_wsync()       DBAR(c_w_w)
+#define c_wsync() DBAR(c_w_w)
 
 /** @} */
 
@@ -115,27 +115,27 @@ extern "C"
 /**
  * @brief 排序同步屏障（读写）
  */
-#define o_sync()        DBAR(orwrw)
+#define o_sync() DBAR(orwrw)
 
 /**
  * @brief 读排序同步屏障
  */
-#define o_rsync()       DBAR(or_r_)
+#define o_rsync() DBAR(or_r_)
 
 /**
  * @brief 写排序同步屏障
  */
-#define o_wsync()       DBAR(o_w_w)
+#define o_wsync() DBAR(o_w_w)
 
 /**
  * @brief 读-写排序屏障（用于Load-Acquire）
  */
-#define ldacq_mb()      DBAR(or_rw)
+#define ldacq_mb() DBAR(or_rw)
 
 /**
  * @brief 写-读排序屏障（用于Store-Release）
  */
-#define strel_mb()      DBAR(orw_w)
+#define strel_mb() DBAR(orw_w)
 
 /** @} */
 
@@ -146,35 +146,35 @@ extern "C"
  *
  * @details 确保所有内存访问完成
  */
-#define mb()            c_sync()
+#define mb() c_sync()
 
 /**
  * @brief 读内存屏障
  *
  * @details 确保所有读操作完成
  */
-#define rmb()           c_rsync()
+#define rmb() c_rsync()
 
 /**
  * @brief 写内存屏障
  *
  * @details 确保所有写操作完成
  */
-#define wmb()           c_wsync()
+#define wmb() c_wsync()
 
 /**
  * @brief I/O内存屏障
  *
  * @details 确保I/O操作完成
  */
-#define iob()           c_sync()
+#define iob() c_sync()
 
 /**
  * @brief 写回刷新
  *
  * @details 刷新写回缓冲区
  */
-#define wbflush()       c_sync()
+#define wbflush() c_sync()
 
 /************************SMP屏障宏******************************/
 
@@ -186,27 +186,27 @@ extern "C"
 /**
  * @brief SMP内存屏障（使用排序屏障）
  */
-#define __smp_mb()      o_sync()
+#define __smp_mb() o_sync()
 
 /**
  * @brief SMP读内存屏障
  */
-#define __smp_rmb()     o_rsync()
+#define __smp_rmb() o_rsync()
 
 /**
  * @brief SMP写内存屏障
  */
-#define __smp_wmb()     o_wsync()
+#define __smp_wmb() o_wsync()
 
 /**
  * @brief 内存屏障（单核/SMP通用）
  */
-#define smp_mb()        mb()
+#define smp_mb() mb()
 
 /**
  * @brief SMP写屏障
  */
-#define smp_wmb()       __smp_wmb()
+#define smp_wmb() __smp_wmb()
 
 /** @} */
 
@@ -225,9 +225,9 @@ extern "C"
  * @details 在SMP配置下使用读屏障，否则为空
  */
 #ifdef CONFIG_SMP
-    #define __WEAK_LLSC_MB       "   dbar 0x700  \n"
+#define __WEAK_LLSC_MB "   dbar 0x700  \n"
 #else
-    #define __WEAK_LLSC_MB       "           \n"
+#define __WEAK_LLSC_MB "           \n"
 #endif
 
 /************************原子操作屏障******************************/
@@ -235,12 +235,12 @@ extern "C"
 /**
  * @brief 原子操作前的内存屏障
  */
-#define __smp_mb__before_atomic()    barrier()
+#define __smp_mb__before_atomic() barrier()
 
 /**
  * @brief 原子操作后的内存屏障
  */
-#define __smp_mb__after_atomic()     barrier()
+#define __smp_mb__after_atomic() barrier()
 
 /************************防止推测执行******************************/
 
@@ -256,24 +256,22 @@ extern "C"
  * @return ~0（当index < size）或 0（当index >= size）
  */
 #define array_index_mask_nospec array_index_mask_nospec
-static inline unsigned long array_index_mask_nospec(unsigned long index,
-                                                    unsigned long size)
-{
-    unsigned long mask;
+    static inline unsigned long array_index_mask_nospec(unsigned long index, unsigned long size)
+    {
+        unsigned long mask;
 
-    __asm__ __volatile__(
-        "sltu   %0, %1, %2\n\t"
+        __asm__ __volatile__("sltu   %0, %1, %2\n\t"
 #if (__SIZEOF_LONG__ == 4)
-        "sub.w  %0, $zero, %0\n\t"
+                             "sub.w  %0, $zero, %0\n\t"
 #elif (__SIZEOF_LONG__ == 8)
-        "sub.d  %0, $zero, %0\n\t"
+                         "sub.d  %0, $zero, %0\n\t"
 #endif
-        : "=r" (mask)
-        : "r" (index), "r" (size)
-        :);
+                             : "=r"(mask)
+                             : "r"(index), "r"(size)
+                             :);
 
-    return mask;
-}
+        return mask;
+    }
 
 /************************Load-Acquire/Store-Release****************/
 
@@ -282,12 +280,12 @@ static inline unsigned long array_index_mask_nospec(unsigned long index,
  *
  * @details 带内存屏障的加载操作，确保后续操作不会被重排到加载之前
  */
-#define __smp_load_acquire(p)                \
-    ({                                        \
-        typeof(*p) ___p1 = READ_ONCE(*p);    \
-        compiletime_assert_atomic_type(*p);   \
-        ldacq_mb();                           \
-        ___p1;                                \
+#define __smp_load_acquire(p)               \
+    ({                                      \
+        typeof(*p) ___p1 = READ_ONCE(*p);   \
+        compiletime_assert_atomic_type(*p); \
+        ldacq_mb();                         \
+        ___p1;                              \
     })
 
 /**
@@ -295,11 +293,12 @@ static inline unsigned long array_index_mask_nospec(unsigned long index,
  *
  * @details 带内存屏障的存储操作，确保前面的操作不会被重排到存储之后
  */
-#define __smp_store_release(p, v)             \
-    do {                                       \
-        compiletime_assert_atomic_type(*p);    \
-        strel_mb();                            \
-        WRITE_ONCE(*p, v);                     \
+#define __smp_store_release(p, v)           \
+    do                                      \
+    {                                       \
+        compiletime_assert_atomic_type(*p); \
+        strel_mb();                         \
+        WRITE_ONCE(*p, v);                  \
     } while (0)
 
 /**
@@ -307,35 +306,38 @@ static inline unsigned long array_index_mask_nospec(unsigned long index,
  *
  * @details 使用原子交换指令实现带屏障的存储
  */
-#define __smp_store_mb(p, v)                                      \
-    do {                                                          \
-        union { typeof(p) __val; char __c[1]; } __u =             \
-            { .__val = (__force typeof(p)) (v) };                 \
-        unsigned long __tmp;                                      \
-        switch (sizeof(p)) {                                      \
-        case 1:                                                  \
-            *(volatile __u8 *)&p = *(__u8 *)__u.__c;              \
-            __smp_mb();                                           \
-            break;                                                \
-        case 2:                                                  \
-            *(volatile __u16 *)&p = *(__u16 *)__u.__c;            \
-            __smp_mb();                                           \
-            break;                                                \
-        case 4:                                                  \
-            __asm__ __volatile__(                                  \
-                "amswap_db.w %[tmp], %[val], %[mem]  \n"          \
-                : [mem] "+ZB" (*(u32 *)&p), [tmp] "=&r" (__tmp)   \
-                : [val] "r" (*(__u32 *)__u.__c)                   \
-                : );                                              \
-            break;                                                \
-        case 8:                                                  \
-            __asm__ __volatile__(                                  \
-                "amswap_db.d %[tmp], %[val], %[mem]  \n"          \
-                : [mem] "+ZB" (*(u64 *)&p), [tmp] "=&r" (__tmp)   \
-                : [val] "r" (*(__u64 *)__u.__c)                   \
-                : );                                              \
-            break;                                                \
-        }                                                         \
+#define __smp_store_mb(p, v)                                                   \
+    do                                                                         \
+    {                                                                          \
+        union                                                                  \
+        {                                                                      \
+            typeof(p) __val;                                                   \
+            char __c[1];                                                       \
+        } __u = {.__val = (__force typeof(p))(v)};                             \
+        unsigned long __tmp;                                                   \
+        switch (sizeof(p))                                                     \
+        {                                                                      \
+        case 1:                                                                \
+            *(volatile __u8 *)&p = *(__u8 *)__u.__c;                           \
+            __smp_mb();                                                        \
+            break;                                                             \
+        case 2:                                                                \
+            *(volatile __u16 *)&p = *(__u16 *)__u.__c;                         \
+            __smp_mb();                                                        \
+            break;                                                             \
+        case 4:                                                                \
+            __asm__ __volatile__("amswap_db.w %[tmp], %[val], %[mem]  \n"      \
+                                 : [mem] "+ZB"(*(u32 *)&p), [tmp] "=&r"(__tmp) \
+                                 : [val] "r"(*(__u32 *)__u.__c)                \
+                                 :);                                           \
+            break;                                                             \
+        case 8:                                                                \
+            __asm__ __volatile__("amswap_db.d %[tmp], %[val], %[mem]  \n"      \
+                                 : [mem] "+ZB"(*(u64 *)&p), [tmp] "=&r"(__tmp) \
+                                 : [val] "r"(*(__u64 *)__u.__c)                \
+                                 :);                                           \
+            break;                                                             \
+        }                                                                      \
     } while (0)
 
 /************************C++兼容性******************************/

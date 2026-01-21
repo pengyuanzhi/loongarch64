@@ -15,9 +15,9 @@
  *
  * @copyright Copyright (c) 2025 Intewell Team
  */
-/************************头 文 件******************************/
+/*************************** 头文件包含 ****************************/
 #include <ttos.h>
-/************************宏 定 义******************************/
+/*************************** 宏定义 ****************************/
 #define RAW_SOCKET_TASK_PRIORITY 7
 /* 静态配置的任务个数 */
 #define CONFIG_TTOS_TASK_CONFIG_NUMBER 1
@@ -43,10 +43,10 @@
 #endif
 /*TTOS事件记录掩码*/
 #define TTOS_RECORD_MASK (TTOS_RECORD_TASK_SWITCH_MASK)
-/************************类型定义******************************/
-/************************外部声明******************************/
-/************************前向声明******************************/
-/************************模块变量******************************/
+/*************************** 类型定义 ****************************/
+/*************************** 外部声明 ****************************/
+/*************************** 前向声明 ****************************/
+/*************************** 模块变量 ****************************/
 T_MODULE T_TTOS_TaskControlBlock tCB[CONFIG_TTOS_TASK_CONFIG_NUMBER];
 T_MODULE T_TTOS_ConfigTimer timerConfig[CONFIG_TTOS_TIMER_CONFIG_NUMBER];
 T_MODULE T_TTOS_TimerControlBlock timerCB[CONFIG_TTOS_TIMER_CONFIG_NUMBER];
@@ -58,7 +58,7 @@ T_MODULE T_TTOS_SemaControlBlock semaCB[CONFIG_TTOS_SEMA_CONFIG_NUMBER];
 #ifdef TTOS_MSGQ
 T_MODULE T_TTOS_MsgqControlBlock msgqCB[CONFIG_TTOS_MSGQ_CONFIG_NUMBER];
 #endif
-/************************全局变量******************************/
+/*************************** 全局变量 ****************************/
 T_TTOS_ConfigTable ttosConfigTable = {
     /* 任务对象的配置结构指针 */
     NULL,

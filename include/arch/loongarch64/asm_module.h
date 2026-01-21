@@ -35,7 +35,7 @@
 /**
  * @brief ILP32模式64位类型定义
  */
-typedef long long          s64; /**< 有符号64位整数 */
+typedef long long s64;          /**< 有符号64位整数 */
 typedef unsigned long long u64; /**< 无符号64位整数 */
 
 #else
@@ -43,7 +43,7 @@ typedef unsigned long long u64; /**< 无符号64位整数 */
 /**
  * @brief LP64模式64位类型定义
  */
-typedef long          s64; /**< 有符号64位整数 */
+typedef long s64;          /**< 有符号64位整数 */
 typedef unsigned long u64; /**< 无符号64位整数 */
 
 #endif

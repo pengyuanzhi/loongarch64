@@ -15,9 +15,9 @@
  *
  * @copyright Copyright (c) 2025 Intewell Team
  */
-/************************头 文 件******************************/
+/*************************** 头文件包含 ****************************/
 #include "ptrace/ptrace.h"
-/************************函数实现******************************/
+/*************************** 函数实现 ****************************/
 /**
  * @brief 重置调试状态
  *
@@ -33,6 +33,7 @@ void reset_debug_state(void)
 {
     /* TODO: 实现调试状态重置 */
 }
+
 /**
  * @brief 恢复硬件调试状态
  *
@@ -49,6 +50,7 @@ void restore_hw_debug(pcb_t pcb)
     (void)pcb;
     /* TODO: 实现硬件调试状态恢复 */
 }
+
 /**
  * @brief 设置寄存器集合
  *
@@ -68,8 +70,10 @@ int ptrace_setregset(pcb_t pcb, void *uregs, int nt_type)
     (void)uregs;
     (void)nt_type;
     /* TODO: 实现寄存器设置 */
+
     return 0;
 }
+
 /**
  * @brief 获取寄存器集合
  *
@@ -89,8 +93,10 @@ int ptrace_getregset(pcb_t pcb, void *uregs, int nt_type)
     (void)uregs;
     (void)nt_type;
     /* TODO: 实现寄存器获取 */
+
     return 0;
 }
+
 /**
  * @brief 取消断点
  *
@@ -107,6 +113,7 @@ void ptrace_cancel_bpt(pcb_t pcb)
     (void)pcb;
     /* TODO: 实现断点取消 */
 }
+
 /**
  * @brief 设置断点
  *
@@ -123,6 +130,7 @@ void ptrace_set_bpt(pcb_t pcb)
     (void)pcb;
     /* TODO: 实现断点设置 */
 }
+
 /**
  * @brief 获取用户寄存器
  *
@@ -138,8 +146,10 @@ struct user *get_user_regs(pcb_t pcb)
 {
     (void)pcb;
     /* TODO: 实现用户寄存器获取 */
+
     return NULL;
 }
+
 /**
  * @brief 验证用户寄存器
  *
@@ -155,8 +165,10 @@ int valid_user_regs(struct user *regs)
 {
     (void)regs;
     /* TODO: 实现寄存器验证 */
+
     return 0;
 }
+
 /**
  * @brief 设置用户寄存器
  *

@@ -15,20 +15,20 @@
  * @copyright Copyright (c) 2025 Intewell Team
  */
 /*************************** 头文件包含 ****************************/
+#include <adrspace.h>
 #include <cpu.h>
+#include <exception.h>
 #include <mmu.h>
+#include <percpu.h>
+#include <stdint.h>
 #include <system/const.h>
 #include <system/types.h>
-#include <stdint.h>
-#include <exception.h>
 #include <ttosMM.h>
-#include <adrspace.h>
-#include <percpu.h>
 /*************************** 外部变量声明 ****************************/
 
-extern long long _start;                 /**< 内核起始地址 */
-extern int __image_start__;              /**< 镜像起始地址 */
-extern int __end__;                      /**< 镜像结束地址 */
+extern long long _start;    /**< 内核起始地址 */
+extern int __image_start__; /**< 镜像起始地址 */
+extern int __end__;         /**< 镜像结束地址 */
 
 /*************************** 外部函数声明 ****************************/
 /**
@@ -82,7 +82,6 @@ extern void loongson_init_secondary(void);
 void early_mmu_init(void)
 {
     kernel_mmu_set_pvoffset(PHYSADDR((&_start)), 0U, (virt_addr_t)(&_start));
-
 }
 
 /**
@@ -106,7 +105,6 @@ void bp_arch_init(void)
     exception_init();
     early_mmu_init();
     trap_init();
-
 }
 
 /**
@@ -128,5 +126,4 @@ void ap_arch_init(void)
     cpu_probe();
     exception_init();
     loongson_init_secondary();
-
 }

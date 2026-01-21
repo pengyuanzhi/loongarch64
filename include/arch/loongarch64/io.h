@@ -23,12 +23,12 @@
 #define _IO_H
 
 /************************头 文 件******************************/
-#include <barrier.h>
-#include <system/types.h>
-#include <errno.h>
-#include <stdbool.h>
 #include <adrspace.h>
+#include <barrier.h>
+#include <errno.h>
 #include <pageTable.h>
+#include <stdbool.h>
+#include <system/types.h>
 
 /************************宏 定 义******************************/
 
@@ -42,20 +42,20 @@
  *
  * @details 直接从I/O地址读取数据（volatile确保不被优化）
  */
-#define arch_readb(a)    (*(volatile unsigned char *)(a))
-#define arch_readw(a)    (*(volatile unsigned short *)(a))
-#define arch_readl(a)    (*(volatile unsigned int *)(a))
-#define arch_readq(a)    (*(volatile unsigned long long *)(a))
+#define arch_readb(a) (*(volatile unsigned char *)(a))
+#define arch_readw(a) (*(volatile unsigned short *)(a))
+#define arch_readl(a) (*(volatile unsigned int *)(a))
+#define arch_readq(a) (*(volatile unsigned long long *)(a))
 
 /**
  * @brief 体系架构通用I/O写接口
  *
  * @details 直接向I/O地址写入数据（volatile确保不被优化）
  */
-#define arch_writeb(v, a)    (*(volatile unsigned char *)(a) = (v))
-#define arch_writew(v, a)    (*(volatile unsigned short *)(a) = (v))
-#define arch_writel(v, a)    (*(volatile unsigned int *)(a) = (v))
-#define arch_writeq(v, a)    (*(volatile unsigned long long *)(a) = (v))
+#define arch_writeb(v, a) (*(volatile unsigned char *)(a) = (v))
+#define arch_writew(v, a) (*(volatile unsigned short *)(a) = (v))
+#define arch_writel(v, a) (*(volatile unsigned int *)(a) = (v))
+#define arch_writeq(v, a) (*(volatile unsigned long long *)(a) = (v))
 
 /** @} */
 
@@ -69,17 +69,17 @@
  *
  * @details 防止编译器重排内存访问
  */
-#define barrier()    __asm__ __volatile__("" : : : "memory")
+#define barrier() __asm__ __volatile__("" : : : "memory")
 
 /**
  * @brief I/O读屏障
  */
-#define iormb()    rmb()
+#define iormb() rmb()
 
 /**
  * @brief I/O写屏障
  */
-#define iowmb()    wmb()
+#define iowmb() wmb()
 
 /** @} */
 
@@ -93,11 +93,11 @@
  *
  * @details 从I/O地址读取8位数据并插入读屏障
  */
-#define readb(c)    \
-    ({    \
-        unsigned char v = arch_readb(c);    \
-        iormb();    \
-        v;    \
+#define readb(c)                         \
+    ({                                   \
+        unsigned char v = arch_readb(c); \
+        iormb();                         \
+        v;                               \
     })
 
 /**
@@ -105,11 +105,11 @@
  *
  * @details 从I/O地址读取16位数据并插入读屏障
  */
-#define readw(c)    \
-    ({    \
-        unsigned short v = arch_readw(c);    \
-        iormb();    \
-        v;    \
+#define readw(c)                          \
+    ({                                    \
+        unsigned short v = arch_readw(c); \
+        iormb();                          \
+        v;                                \
     })
 
 /**
@@ -117,11 +117,11 @@
  *
  * @details 从I/O地址读取32位数据并插入读屏障
  */
-#define readl(c)    \
-    ({    \
-        unsigned int v = arch_readl(c);    \
-        iormb();    \
-        v;    \
+#define readl(c)                        \
+    ({                                  \
+        unsigned int v = arch_readl(c); \
+        iormb();                        \
+        v;                              \
     })
 
 /**
@@ -129,11 +129,11 @@
  *
  * @details 从I/O地址读取64位数据并插入读屏障
  */
-#define readq(c)    \
-    ({    \
-        unsigned long long v = arch_readq(c);    \
-        iormb();    \
-        v;    \
+#define readq(c)                              \
+    ({                                        \
+        unsigned long long v = arch_readq(c); \
+        iormb();                              \
+        v;                                    \
     })
 
 /**
@@ -141,10 +141,10 @@
  *
  * @details 向I/O地址写入8位数据（前插写屏障）
  */
-#define writeb(v, c)    \
-    ({    \
-        iowmb();    \
-        arch_writeb((v), (c));    \
+#define writeb(v, c)           \
+    ({                         \
+        iowmb();               \
+        arch_writeb((v), (c)); \
     })
 
 /**
@@ -152,10 +152,10 @@
  *
  * @details 向I/O地址写入16位数据（前插写屏障）
  */
-#define writew(v, c)    \
-    ({    \
-        iowmb();    \
-        arch_writew((v), (c));    \
+#define writew(v, c)           \
+    ({                         \
+        iowmb();               \
+        arch_writew((v), (c)); \
     })
 
 /**
@@ -163,10 +163,10 @@
  *
  * @details 向I/O地址写入32位数据（前插写屏障）
  */
-#define writel(v, c)    \
-    ({    \
-        iowmb();    \
-        arch_writel((v), (c));    \
+#define writel(v, c)           \
+    ({                         \
+        iowmb();               \
+        arch_writel((v), (c)); \
     })
 
 /**
@@ -174,10 +174,10 @@
  *
  * @details 向I/O地址写入64位数据（前插写屏障）
  */
-#define writeq(v, c)    \
-    ({    \
-        iowmb();    \
-        arch_writeq((v), (c));    \
+#define writeq(v, c)           \
+    ({                         \
+        iowmb();               \
+        arch_writeq((v), (c)); \
     })
 
 /** @} */
@@ -190,32 +190,26 @@
 /**
  * @brief 32位字节交换（大端序）
  */
-#define _swab32(x)    \
-    ((u32)(    \
-        (((u32)(x) & (u32)0x000000ffUL) << 24) |    \
-        (((u32)(x) & (u32)0x0000ff00UL) <<  8) |    \
-        (((u32)(x) & (u32)0x00ff0000UL) >>  8) |    \
-        (((u32)(x) & (u32)0xff000000UL) >> 24) ))
+#define _swab32(x)                                                                          \
+    ((u32)((((u32)(x) & (u32)0x000000ffUL) << 24) | (((u32)(x) & (u32)0x0000ff00UL) << 8) | \
+           (((u32)(x) & (u32)0x00ff0000UL) >> 8) | (((u32)(x) & (u32)0xff000000UL) >> 24)))
 
 /**
  * @brief 16位字节交换（大端序）
  */
-#define _swab16(x)    \
-    ((u16)(    \
-        (((u16)(x) & (u16)0x00ffUL) << 8) |    \
-        (((u16)(x) & (u16)0xff00UL) >>  8) ))
+#define _swab16(x) ((u16)((((u16)(x) & (u16)0x00ffUL) << 8) | (((u16)(x) & (u16)0xff00UL) >> 8)))
 
 /**
  * @brief CPU序到大端序转换
  */
-#define cpu_to_be32(x)    _swab32(x)
-#define be32_to_cpu(x)    _swab32(x)
+#define cpu_to_be32(x) _swab32(x)
+#define be32_to_cpu(x) _swab32(x)
 
 /**
  * @brief CPU序到大端序转换（16位）
  */
-#define cpu_to_be16(x)    _swab16(x)
-#define be16_to_cpu(x)    _swab16(x)
+#define cpu_to_be16(x) _swab16(x)
+#define be16_to_cpu(x) _swab16(x)
 
 /** @} */
 
@@ -227,42 +221,42 @@
 /**
  * @brief 大端序I/O读模板
  */
-#define in_arch(type, endian, a)    endian##_to_cpu(read##type(a))
+#define in_arch(type, endian, a) endian##_to_cpu(read##type(a))
 
 /**
  * @brief 大端序I/O写模板
  */
-#define out_arch(type, endian, a, v)    write##type(cpu_to_##endian(v), a)
+#define out_arch(type, endian, a, v) write##type(cpu_to_##endian(v), a)
 
 /**
  * @brief 大端32位I/O操作
  */
-#define out_be32(a, v)    out_arch(l, be32, a, v)
-#define in_be32(a)    in_arch(l, be32, a)
+#define out_be32(a, v) out_arch(l, be32, a, v)
+#define in_be32(a) in_arch(l, be32, a)
 
 /**
  * @brief 大端16位I/O操作
  */
-#define out_be16(a, v)    out_arch(l, be16, a, v)
-#define in_be16(a)    in_arch(l, be16, a)
+#define out_be16(a, v) out_arch(l, be16, a, v)
+#define in_be16(a) in_arch(l, be16, a)
 
 /**
  * @brief 小端32位I/O操作
  */
-#define out_le32(a, v)    writel(v, a)
-#define in_le32(a)    readl(a)
+#define out_le32(a, v) writel(v, a)
+#define in_le32(a) readl(a)
 
 /**
  * @brief 小端16位I/O操作
  */
-#define out_le16(a, v)    writew(v, a)
-#define in_le16(a)    readw(a)
+#define out_le16(a, v) writew(v, a)
+#define in_le16(a) readw(a)
 
 /**
  * @brief 8位I/O操作
  */
-#define out_8(a, v)    writeb(v, a)
-#define in_8(a)    readb(a)
+#define out_8(a, v) writeb(v, a)
+#define in_8(a) readb(a)
 
 /** @} */
 
@@ -274,48 +268,45 @@
 /**
  * @brief 清除位
  */
-#define clrbits(type, addr, clear)    \
-    out_##type((addr), in_##type(addr) & ~(clear))
+#define clrbits(type, addr, clear) out_##type((addr), in_##type(addr) & ~(clear))
 
 /**
  * @brief 设置位
  */
-#define setbits(type, addr, set)    \
-    out_##type((addr), in_##type(addr) | (set))
+#define setbits(type, addr, set) out_##type((addr), in_##type(addr) | (set))
 
 /**
  * @brief 清除并设置位
  */
-#define clrsetbits(type, addr, clear, set)    \
-    out_##type((addr), (in_##type(addr) & ~(clear)) | (set))
+#define clrsetbits(type, addr, clear, set) out_##type((addr), (in_##type(addr) & ~(clear)) | (set))
 
 /**
  * @brief 小端32位位操作
  */
-#define clrbits_le32(addr, clear)    clrbits(le32, addr, clear)
-#define setbits_le32(addr, set)    setbits(le32, addr, set)
-#define clrsetbits_le32(addr, clear, set)    clrsetbits(le32, addr, clear, set)
+#define clrbits_le32(addr, clear) clrbits(le32, addr, clear)
+#define setbits_le32(addr, set) setbits(le32, addr, set)
+#define clrsetbits_le32(addr, clear, set) clrsetbits(le32, addr, clear, set)
 
 /**
  * @brief 小端16位位操作
  */
-#define clrbits_le16(addr, clear)    clrbits(le16, addr, clear)
-#define setbits_le16(addr, set)    setbits(le16, addr, set)
-#define clrsetbits_le16(addr, clear, set)    clrsetbits(le16, addr, clear, set)
+#define clrbits_le16(addr, clear) clrbits(le16, addr, clear)
+#define setbits_le16(addr, set) setbits(le16, addr, set)
+#define clrsetbits_le16(addr, clear, set) clrsetbits(le16, addr, clear, set)
 
 /**
  * @brief 大端32位位操作
  */
-#define clrbits_be32(addr, clear)    clrbits(be32, addr, clear)
-#define setbits_be32(addr, set)    setbits(be32, addr, set)
-#define clrsetbits_be32(addr, clear, set)    clrsetbits(be32, addr, clear, set)
+#define clrbits_be32(addr, clear) clrbits(be32, addr, clear)
+#define setbits_be32(addr, set) setbits(be32, addr, set)
+#define clrsetbits_be32(addr, clear, set) clrsetbits(be32, addr, clear, set)
 
 /**
  * @brief 8位位操作
  */
-#define clrbits_8(addr, clear)    clrbits(8, addr, clear)
-#define setbits_8(addr, set)    setbits(8, addr, set)
-#define clrsetbits_8(addr, clear, set)    clrsetbits(8, addr, clear, set)
+#define clrbits_8(addr, clear) clrbits(8, addr, clear)
+#define setbits_8(addr, set) setbits(8, addr, set)
+#define clrsetbits_8(addr, clear, set) clrsetbits(8, addr, clear, set)
 
 /** @} */
 
@@ -350,10 +341,7 @@ int usleep(unsigned usecs);
  *
  * @return 成功返回0，超时返回-ETIMEDOUT
  */
-static inline int wait_for_bit_le32(const void *reg,
-                                    const u32 mask,
-                                    const bool set,
-                                    const unsigned int timeout_ms,
+static inline int wait_for_bit_le32(const void *reg, const u32 mask, const bool set, const unsigned int timeout_ms,
                                     const bool breakable)
 {
     u32 val;
@@ -400,21 +388,20 @@ static inline int wait_for_bit_le32(const void *reg,
  *
  * @return 成功返回虚拟地址指针，失败返回NULL
  */
-static inline void *ioremap_prot(phys_addr_t offset, unsigned long size,
-                                 unsigned long prot_val)
+static inline void *ioremap_prot(phys_addr_t offset, unsigned long size, unsigned long prot_val)
 {
     (void)size; /* 未使用参数 */
 
     switch (prot_val)
     {
-        case _CACHE_CC:
-            return (void *)(unsigned long)(CACHE_BASE + offset);
-        case _CACHE_SUC:
-            return (void *)(unsigned long)(UNCACHE_BASE + offset);
-        case _CACHE_WUC:
-            return (void *)(unsigned long)(WRITECOMBINE_BASE + offset);
-        default:
-            return NULL;
+    case _CACHE_CC:
+        return (void *)(unsigned long)(CACHE_BASE + offset);
+    case _CACHE_SUC:
+        return (void *)(unsigned long)(UNCACHE_BASE + offset);
+    case _CACHE_WUC:
+        return (void *)(unsigned long)(WRITECOMBINE_BASE + offset);
+    default:
+        return NULL;
     }
 }
 

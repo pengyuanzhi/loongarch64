@@ -20,122 +20,117 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-
 /*
-*  LoongArch register definitions
-*/
-#define zero	$r0	/* wired zero */
-#define ra	$r1	/* return address */
-#define tp	$r2 /* thread pointer */
-#define gp	$r2 /* thread pointer ? */
-#define sp	$r3	/* stack pointer */
-#define v0	$r4	/* return value - caller saved */
-#define v1	$r5
-#define a0	$r4	/* argument registers */
-#define a1	$r5
-#define a2	$r6
-#define a3	$r7
-#define a4	$r8
-#define a5	$r9
-#define a6	$r10
-#define a7	$r11
-#define t0	$r12	/* caller saved func myself use*/
-#define t1	$r13
-#define t2	$r14
-#define t3	$r15
-#define t4	$r16
-#define t5	$r17
-#define t6	$r18
-#define t7	$r19
-#define t8	$r20
+ *  LoongArch register definitions
+ */
+#define zero $r0 /* wired zero */
+#define ra $r1   /* return address */
+#define tp $r2   /* thread pointer */
+#define gp $r2   /* thread pointer ? */
+#define sp $r3   /* stack pointer */
+#define v0 $r4   /* return value - caller saved */
+#define v1 $r5
+#define a0 $r4 /* argument registers */
+#define a1 $r5
+#define a2 $r6
+#define a3 $r7
+#define a4 $r8
+#define a5 $r9
+#define a6 $r10
+#define a7 $r11
+#define t0 $r12 /* caller saved func myself use*/
+#define t1 $r13
+#define t2 $r14
+#define t3 $r15
+#define t4 $r16
+#define t5 $r17
+#define t6 $r18
+#define t7 $r19
+#define t8 $r20
 /* $r21: Temporarily reserved */
-#define u0  $r21     /* assembler temp */
-#define fp	$r22	/* frame pointer */
+#define u0 $r21 /* assembler temp */
+#define fp $r22 /* frame pointer */
 
-#define s0	$r23	/* callee saved  if func use this ,need save original data . at the end of func must recover original data */
-#define s1	$r24
-#define s2	$r25
-#define s3	$r26
-#define s4	$r27
-#define s5	$r28
-#define s6	$r29
-#define s7	$r30
-#define s8	$r31
+#define s0 \
+    $r23 /* callee saved  if func use this ,need save original data . at the end of func must recover original data */
+#define s1 $r24
+#define s2 $r25
+#define s3 $r26
+#define s4 $r27
+#define s5 $r28
+#define s6 $r29
+#define s7 $r30
+#define s8 $r31
 
+    /*
+     *  LOONGARCH floating point coprocessor register definitions
+     */
 
+#define fp0 $f0   /* return reg 0 */
+#define fp1 $f1   /* return reg 1 */
+#define fp2 $f2   /* return reg 2 */
+#define fp3 $f3   /* return reg 3 */
+#define fp4 $f4   /* caller saved 0 */
+#define fp5 $f5   /* caller saved 1 */
+#define fp6 $f6   /* caller saved 2 */
+#define fp7 $f7   /* caller saved 3 */
+#define fp8 $f8   /* caller saved 4 */
+#define fp9 $f9   /* caller saved 5 */
+#define fp10 $f10 /* caller saved 6 */
+#define fp11 $f11 /* caller saved 7 */
+#define fp12 $f12 /* arg reg 0 */
+#define fp13 $f13 /* arg reg 1 */
+#define fp14 $f14 /* arg reg 2 */
+#define fp15 $f15 /* arg reg 3 */
+#define fp16 $f16 /* caller saved 8 */
+#define fp17 $f17 /* caller saved 9 */
+#define fp18 $f18 /* caller saved 10 */
+#define fp19 $f19 /* caller saved 11 */
+#define fp20 $f20 /* callee saved 0 */
+#define fp21 $f21 /* callee saved 1 */
+#define fp22 $f22 /* callee saved 2 */
+#define fp23 $f23 /* callee saved 3 */
+#define fp24 $f24 /* callee saved 4 */
+#define fp25 $f25 /* callee saved 5 */
+#define fp26 $f26 /* callee saved 6 */
+#define fp27 $f27 /* callee saved 7 */
+#define fp28 $f28 /* callee saved 8 */
+#define fp29 $f29 /* callee saved 9 */
+#define fp30 $f30 /* callee saved 10 */
+#define fp31 $f31 /* callee saved 11 */
 
-/*
-*  LOONGARCH floating point coprocessor register definitions
-*/
-
-#define fp0     $f0     /* return reg 0 */
-#define fp1     $f1     /* return reg 1 */
-#define fp2     $f2     /* return reg 2 */
-#define fp3     $f3     /* return reg 3 */
-#define fp4     $f4     /* caller saved 0 */
-#define fp5     $f5     /* caller saved 1 */
-#define fp6     $f6     /* caller saved 2 */
-#define fp7     $f7     /* caller saved 3 */
-#define fp8     $f8     /* caller saved 4 */
-#define fp9     $f9     /* caller saved 5 */
-#define fp10    $f10    /* caller saved 6 */
-#define fp11    $f11    /* caller saved 7 */
-#define fp12    $f12    /* arg reg 0 */
-#define fp13    $f13    /* arg reg 1 */
-#define fp14    $f14    /* arg reg 2 */
-#define fp15    $f15    /* arg reg 3 */
-#define fp16    $f16    /* caller saved 8 */
-#define fp17    $f17    /* caller saved 9 */
-#define fp18    $f18    /* caller saved 10 */
-#define fp19    $f19    /* caller saved 11 */
-#define fp20    $f20    /* callee saved 0 */
-#define fp21    $f21    /* callee saved 1 */
-#define fp22    $f22    /* callee saved 2 */
-#define fp23    $f23    /* callee saved 3 */
-#define fp24    $f24    /* callee saved 4 */
-#define fp25    $f25    /* callee saved 5 */
-#define fp26    $f26    /* callee saved 6 */
-#define fp27    $f27    /* callee saved 7 */
-#define fp28    $f28    /* callee saved 8 */
-#define fp29    $f29    /* callee saved 9 */
-#define fp30    $f30    /* callee saved 10 */
-#define fp31    $f31    /* callee saved 11 */
-
-
-#define fcsr0   $r0
-#define fcsr1   $r1
-#define fcsr2   $r2
-#define fcsr3   $r3
+#define fcsr0 $r0
+#define fcsr1 $r1
+#define fcsr2 $r2
+#define fcsr3 $r3
 #if 0
-#define fcc0    $fcc0
-#define fcc1    $fcc1
-#define fcc2    $fcc2
-#define fcc3    $fcc3
-#define fcc4    $fcc4
-#define fcc5    $fcc5
-#define fcc6    $fcc6
-#define fcc7    $fcc7
+#define fcc0 $fcc0
+#define fcc1 $fcc1
+#define fcc2 $fcc2
+#define fcc3 $fcc3
+#define fcc4 $fcc4
+#define fcc5 $fcc5
+#define fcc6 $fcc6
+#define fcc7 $fcc7
 #endif
 
 /*
  * Size of a register
  */
 #ifndef __loongarch64
-#define SZREG	4
+#define SZREG 4
 #else
-#define SZREG	8
+#define SZREG 8
 #endif
 
-#define LONGSIZE	8
+#define LONGSIZE 8
 
 /* LoongArch pref instruction. */
 #ifdef CONFIG_CPU_HAS_PREFETCH
 
-#define PREF(hint, addr, offs)				\
-		preld	hint, addr, offs;		\
+#define PREF(hint, addr, offs) preld hint, addr, offs;
 
-#define PREFX(hint, addr, index)			\
-		preldx	hint, addr, index;		\
+#define PREFX(hint, addr, index) preldx hint, addr, index;
 
 #else /* !CONFIG_CPU_HAS_PREFETCH */
 
@@ -147,7 +142,7 @@ extern "C"
 /*
  * Stack alignment
  */
-#define STACK_ALIGN	~(0xf)
+#define STACK_ALIGN ~(0xf)
 
 /*
  * Macros to handle different pointer/register sizes for 32/64-bit code
@@ -157,9 +152,9 @@ extern "C"
  * Size of a register
  */
 #ifndef __loongarch64
-#define SZREG	4
+#define SZREG 4
 #else
-#define SZREG	8
+#define SZREG 8
 #endif
 
 /*
@@ -167,148 +162,148 @@ extern "C"
  * pointers etc.
  */
 #if (SZREG == 4)
-#define REG_L		ld.w
-#define REG_S		st.w
-#define REG_ADD		add.w
-#define REG_SUB		sub.w
+#define REG_L ld.w
+#define REG_S st.w
+#define REG_ADD add.w
+#define REG_SUB sub.w
 #else /* SZREG == 8 */
-#define REG_L		ld.d
-#define REG_S		st.d
-#define REG_ADD		add.d
-#define REG_SUB		sub.d
+#define REG_L ld.d
+#define REG_S st.d
+#define REG_ADD add.d
+#define REG_SUB sub.d
 #endif
 
 /*
  * How to add/sub/load/store/shift C int variables.
  */
 #if (__SIZEOF_INT__ == 4)
-#define INT_ADD		add.w
-#define INT_ADDI	addi.w
-#define INT_SUB		sub.w
-#define INT_L		ld.w
-#define INT_S		st.w
-#define INT_SLL		slli.w
-#define INT_SLLV	sll.w
-#define INT_SRL		srli.w
-#define INT_SRLV	srl.w
-#define INT_SRA		srai.w
-#define INT_SRAV	sra.w
+#define INT_ADD add.w
+#define INT_ADDI addi.w
+#define INT_SUB sub.w
+#define INT_L ld.w
+#define INT_S st.w
+#define INT_SLL slli.w
+#define INT_SLLV sll.w
+#define INT_SRL srli.w
+#define INT_SRLV srl.w
+#define INT_SRA srai.w
+#define INT_SRAV sra.w
 #endif
 
 #if (__SIZEOF_INT__ == 8)
-#define INT_ADD		add.d
-#define INT_ADDI	addi.d
-#define INT_SUB		sub.d
-#define INT_L		ld.d
-#define INT_S		st.d
-#define INT_SLL		slli.d
-#define INT_SLLV	sll.d
-#define INT_SRL		srli.d
-#define INT_SRLV	srl.d
-#define INT_SRA		srai.d
-#define INT_SRAV	sra.d
+#define INT_ADD add.d
+#define INT_ADDI addi.d
+#define INT_SUB sub.d
+#define INT_L ld.d
+#define INT_S st.d
+#define INT_SLL slli.d
+#define INT_SLLV sll.d
+#define INT_SRL srli.d
+#define INT_SRLV srl.d
+#define INT_SRA srai.d
+#define INT_SRAV sra.d
 #endif
 
 /*
  * How to add/sub/load/store/shift C long variables.
  */
 #if (__SIZEOF_LONG__ == 4)
-#define LONG_ADD	add.w
-#define LONG_ADDI	addi.w
-#define LONG_SUB	sub.w
-#define LONG_L		ld.w
-#define LONG_S		st.w
-#define LONG_SLL	slli.w
-#define LONG_SLLV	sll.w
-#define LONG_SRL	srli.w
-#define LONG_SRLV	srl.w
-#define LONG_SRA	srai.w
-#define LONG_SRAV	sra.w
+#define LONG_ADD add.w
+#define LONG_ADDI addi.w
+#define LONG_SUB sub.w
+#define LONG_L ld.w
+#define LONG_S st.w
+#define LONG_SLL slli.w
+#define LONG_SLLV sll.w
+#define LONG_SRL srli.w
+#define LONG_SRLV srl.w
+#define LONG_SRA srai.w
+#define LONG_SRAV sra.w
 
 #ifdef ASM_USE
-#define LONG		.word
+#define LONG .word
 #endif
-#define LONGSIZE	4
-#define LONGMASK	3
-#define LONGLOG		2
+#define LONGSIZE 4
+#define LONGMASK 3
+#define LONGLOG 2
 #endif
 
 #if (__SIZEOF_LONG__ == 8)
-#define LONG_ADD	add.d
-#define LONG_ADDI	addi.d
-#define LONG_SUB	sub.d
-#define LONG_L		ld.d
-#define LONG_S		st.d
-#define LONG_SLL	slli.d
-#define LONG_SLLV	sll.d
-#define LONG_SRL	srli.d
-#define LONG_SRLV	srl.d
-#define LONG_SRA	srai.d
-#define LONG_SRAV	sra.d
+#define LONG_ADD add.d
+#define LONG_ADDI addi.d
+#define LONG_SUB sub.d
+#define LONG_L ld.d
+#define LONG_S st.d
+#define LONG_SLL slli.d
+#define LONG_SLLV sll.d
+#define LONG_SRL srli.d
+#define LONG_SRLV srl.d
+#define LONG_SRA srai.d
+#define LONG_SRAV sra.d
 
 #ifdef ASM_USE
-#define LONG		.dword
+#define LONG .dword
 #endif
-#define LONGSIZE	8
-#define LONGMASK	7
-#define LONGLOG		3
+#define LONGSIZE 8
+#define LONGMASK 7
+#define LONGLOG 3
 #endif
 
 /*
  * How to add/sub/load/store/shift pointers.
  */
 #if (__SIZEOF_POINTER__ == 4)
-#define PTR_ADD		add.w
-#define PTR_ADDI	addi.w
-#define PTR_SUB		sub.w
-#define PTR_L		ld.w
-#define PTR_S		st.w
-#define PTR_LI		li.w
-#define PTR_SLL		slli.w
-#define PTR_SLLV	sll.w
-#define PTR_SRL		srli.w
-#define PTR_SRLV	srl.w
-#define PTR_SRA		srai.w
-#define PTR_SRAV	sra.w
+#define PTR_ADD add.w
+#define PTR_ADDI addi.w
+#define PTR_SUB sub.w
+#define PTR_L ld.w
+#define PTR_S st.w
+#define PTR_LI li.w
+#define PTR_SLL slli.w
+#define PTR_SLLV sll.w
+#define PTR_SRL srli.w
+#define PTR_SRLV srl.w
+#define PTR_SRA srai.w
+#define PTR_SRAV sra.w
 
-#define PTR_SCALESHIFT	2
+#define PTR_SCALESHIFT 2
 
 #ifdef ASM_USE
-#define PTR		.word
+#define PTR .word
 #endif
-#define PTRSIZE		4
-#define PTRLOG		2
+#define PTRSIZE 4
+#define PTRLOG 2
 #endif
 
 #if (__SIZEOF_POINTER__ == 8)
-#define PTR_ADD		add.d
-#define PTR_ADDI	addi.d
-#define PTR_SUB		sub.d
-#define PTR_L		ld.d
-#define PTR_S		st.d
-#define PTR_LI		li.d
-#define PTR_SLL		slli.d
-#define PTR_SLLV	sll.d
-#define PTR_SRL		srli.d
-#define PTR_SRLV	srl.d
-#define PTR_SRA		srai.d
-#define PTR_SRAV	sra.d
+#define PTR_ADD add.d
+#define PTR_ADDI addi.d
+#define PTR_SUB sub.d
+#define PTR_L ld.d
+#define PTR_S st.d
+#define PTR_LI li.d
+#define PTR_SLL slli.d
+#define PTR_SLLV sll.d
+#define PTR_SRL srli.d
+#define PTR_SRLV srl.d
+#define PTR_SRA srai.d
+#define PTR_SRAV sra.d
 
-#define PTR_SCALESHIFT	3
+#define PTR_SCALESHIFT 3
 
 #ifdef ASM_USE
-#define PTR		.dword
+#define PTR .dword
 #endif
-#define PTRSIZE		8
-#define PTRLOG		3
+#define PTRSIZE 8
+#define PTRLOG 3
 #endif
 
 /* Annotate a function as being unsuitable for kprobes. */
 #ifdef CONFIG_KPROBES
-#define _ASM_NOKPROBE(name)				\
-	.pushsection "_kprobe_blacklist", "aw";		\
-	.quad	name;					\
-	.popsection
+#define _ASM_NOKPROBE(name)                 \
+    .pushsection "_kprobe_blacklist", "aw"; \
+    .quad name;                             \
+    .popsection
 #else
 #define _ASM_NOKPROBE(name)
 #endif
@@ -317,25 +312,22 @@ extern "C"
 
 #define ALIGN .align 4
 
-#define ENTRY(name)                             \
-  .globl name;                                  \
-  ALIGN;                                        \
-  name:
+#define ENTRY(name) \
+    .globl name;    \
+    ALIGN;          \
+    name:
 
-#define GLOBAL(name)                            \
-  .globl name;                                  \
-  name:
-  
-#define END(name) \
-  .size name, .-name
-  
-#define ENDPROC(name) \
-  .type name, %function; \
-  END(name)
+#define GLOBAL(name) \
+    .globl name;     \
+    name:
 
+#define END(name) .size name, .- name
 
+#define ENDPROC(name)       \
+    .type name, % function; \
+    END(name)
 
-	.macro BACKUP_T0T1
+    .macro BACKUP_T0T1
 	csrwr	t0, EXCEPTION_KS0
 	csrwr	t1, EXCEPTION_KS1
 	.endm
@@ -529,14 +521,14 @@ extern "C"
 #endif
 .endm
 
-#define __ASM_EXTABLE_RAW(insn, fixup, type, data)	\
-	.pushsection	__ex_table, "a";		\
-	.balign		4;				\
-	.long		((insn) - .);			\
-	.long		((fixup) - .);			\
-	.short		(type);				\
-	.short		(data);				\
-	.popsection;
+#define __ASM_EXTABLE_RAW(insn, fixup, type, data) \
+    .pushsection __ex_table, "a";                  \
+    .balign 4;                                     \
+    .long((insn) -.);                              \
+    .long((fixup) -.);                             \
+    .short(type);                                  \
+    .short(data);                                  \
+    .popsection;
 
 	.macro		_asm_extable, insn, fixup
 	__ASM_EXTABLE_RAW(\insn, \fixup, EX_TYPE_FIXUP, 0)

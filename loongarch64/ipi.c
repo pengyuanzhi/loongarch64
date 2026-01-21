@@ -15,24 +15,24 @@
  *
  * @copyright Copyright (c) 2025 Intewell Team
  */
-/************************头 文 件******************************/
-#include <system/bitops.h>
+/*************************** 头文件包含 ****************************/
+#include <barrier.h>
 #include <errno.h>
 #include <ipi.h>
+#include <system/bitops.h>
+#include <system/types.h>
 #include <ttos.h>
 #include <ttosBase.h>
 #include <ttos_pic.h>
-#include <barrier.h>
-#include <system/types.h>
 /* TODO LOONGARCH */
-/************************宏 定 义******************************/
-/************************类型定义******************************/
-/************************外部声明******************************/
+/*************************** 宏定义 ****************************/
+/*************************** 类型定义 ****************************/
+/*************************** 外部声明 ****************************/
 extern int32_t loongson2k_pic_ipi_ack(struct ttos_pic *pic, uint32_t *src_cpu, uint32_t *irq);
-/************************前向声明******************************/
-/************************模块变量******************************/
-/************************全局变量******************************/
-/************************实   现*******************************/
+/*************************** 前向声明 ****************************/
+/*************************** 模块变量 ****************************/
+/*************************** 全局变量 ****************************/
+/*************************** 函数实现 ****************************/
 /**
  * @brief
  *	  发送IPI
@@ -45,46 +45,52 @@ extern int32_t loongson2k_pic_ipi_ack(struct ttos_pic *pic, uint32_t *src_cpu, u
 static s32 ipi_send(cpu_set_t *cpus, u32 ipi, bool selfexcluded)
 {
     cpu_set_t target_cpus;
-    CPU_ZERO (&target_cpus);
+
+    CPU_ZERO(&target_cpus);
+
     /* 获取目的cpu集合 */
-    if (CPU_COUNT (cpus) == 0)
+    if (CPU_COUNT(cpus) == 0)
     {
 #if CONFIG_SMP == 1
-        CPU_OR (&target_cpus, &target_cpus, TTOS_CPUSET_ENABLED ());
+        CPU_OR(&target_cpus, &target_cpus, TTOS_CPUSET_ENABLED());
 #else
-        CPU_ZERO (&target_cpus);
-        CPU_SET (0, &target_cpus);
+        CPU_ZERO(&target_cpus);
+        CPU_SET(0, &target_cpus);
 #endif
     }
     else
     {
-        CPU_OR (&target_cpus, &target_cpus, cpus);
+        CPU_OR(&target_cpus, &target_cpus, cpus);
     }
+
     /* 是否排除自己 */
     if (TRUE == selfexcluded)
     {
-        CPU_CLR (cpuid_get (), &target_cpus);
+        CPU_CLR(cpuid_get(), &target_cpus);
     }
-    if (CPU_COUNT (&target_cpus) == 0)
+
+    if (CPU_COUNT(&target_cpus) == 0)
     {
         return (-EIO);
     }
+
     /* 获取有效位的cpu索引号 */
     for (int cpu = 0; cpu < CONFIG_MAX_CPUS; cpu++)
     {
-        if (CPU_ISSET (cpu, &target_cpus))
+        if (CPU_ISSET(cpu, &target_cpus))
         {
-            if ((GENERAL_IPI_SCHED == ipi)
-                && (FALSE == ttosIsNeedRescheduleWithCpuId (cpu)))
+            if ((GENERAL_IPI_SCHED == ipi) && (FALSE == ttosIsNeedRescheduleWithCpuId(cpu)))
             {
                 continue;
             }
             /* 发送ipi */
-            ttos_pic_ipi_send (GENERAL_IPI_SCHED, cpu,0);
+            ttos_pic_ipi_send(GENERAL_IPI_SCHED, cpu, 0);
         }
     }
+
     return (0);
 }
+
 /**
  * @brief
  *	  发送重调度IPI
@@ -95,7 +101,7 @@ static s32 ipi_send(cpu_set_t *cpus, u32 ipi, bool selfexcluded)
  */
 s32 ipi_reschedule(cpu_set_t *cpus, bool selfexcluded)
 {
-    return ipi_send (cpus, GENERAL_IPI_SCHED, selfexcluded);
+    return ipi_send(cpus, GENERAL_IPI_SCHED, selfexcluded);
 }
 /**
  * @brief
@@ -104,9 +110,9 @@ s32 ipi_reschedule(cpu_set_t *cpus, bool selfexcluded)
  * @param[in] 私有数据
  * @retval 无
  */
-void ipi_reschedule_handler (u32 irq, void *param)
+void ipi_reschedule_handler(u32 irq, void *param)
 {
-    ttosSchedule(); // 对当前CPU上任务进行调度
+    ttosSchedule();    // 对当前CPU上任务进行调度
 }
 void loongson_ipi_interrupt(uint32_t irq, void *arg)
 {

@@ -21,9 +21,9 @@
 #define _FPU_H
 
 /************************头 文 件******************************/
-#include <cpu.h>
-#include <cpu-info.h>
 #include <cpu-features.h>
+#include <cpu-info.h>
+#include <cpu.h>
 #include <ttos.h>
 
 /************************宏 定 义******************************/
@@ -44,8 +44,7 @@
  */
 static inline unsigned long mask_fcsr_x(unsigned long fcsr)
 {
-    return fcsr & ((fcsr & FPU_CSR_ALL_E) <<
-                   (ffs(FPU_CSR_ALL_X) - ffs(FPU_CSR_ALL_E)));
+    return fcsr & ((fcsr & FPU_CSR_ALL_E) << (ffs(FPU_CSR_ALL_X) - ffs(FPU_CSR_ALL_E)));
 }
 
 /**
@@ -111,14 +110,14 @@ static inline int is_simd_enabled(void)
  *
  * @details 设置EUEN寄存器的FPEN位
  */
-#define enable_fpu()    set_csr_euen(CSR_EUEN_FPEN)
+#define enable_fpu() set_csr_euen(CSR_EUEN_FPEN)
 
 /**
  * @brief 禁用FPU
  *
  * @details 清除EUEN寄存器的FPEN位
  */
-#define disable_fpu()    clear_csr_euen(CSR_EUEN_FPEN)
+#define disable_fpu() clear_csr_euen(CSR_EUEN_FPEN)
 
 /**
  * @defgroup FPUBasic 基础FPU操作
@@ -244,12 +243,8 @@ static inline void restore_lsx_upper(struct T_TTOS_TaskControlBlock_Struct *t)
 
 #else
 
-static inline void enable_lsx(void)
-{
-}
-static inline void disable_lsx(void)
-{
-}
+static inline void enable_lsx(void) {}
+static inline void disable_lsx(void) {}
 static inline void save_lsx(struct T_TTOS_TaskControlBlock_Struct *t)
 {
     (void)t;
@@ -258,9 +253,7 @@ static inline void restore_lsx(struct T_TTOS_TaskControlBlock_Struct *t)
 {
     (void)t;
 }
-static inline void init_lsx_upper(void)
-{
-}
+static inline void init_lsx_upper(void) {}
 static inline void restore_lsx_upper(struct T_TTOS_TaskControlBlock_Struct *t)
 {
     (void)t;
@@ -357,12 +350,8 @@ static inline void restore_lasx_upper(struct T_TTOS_TaskControlBlock_Struct *t)
 
 #else
 
-static inline void enable_lasx(void)
-{
-}
-static inline void disable_lasx(void)
-{
-}
+static inline void enable_lasx(void) {}
+static inline void disable_lasx(void) {}
 static inline void save_lasx(struct T_TTOS_TaskControlBlock_Struct *t)
 {
     (void)t;
@@ -371,9 +360,7 @@ static inline void restore_lasx(struct T_TTOS_TaskControlBlock_Struct *t)
 {
     (void)t;
 }
-static inline void init_lasx_upper(void)
-{
-}
+static inline void init_lasx_upper(void) {}
 static inline void restore_lasx_upper(struct T_TTOS_TaskControlBlock_Struct *t)
 {
     (void)t;

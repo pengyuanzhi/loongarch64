@@ -41,7 +41,7 @@ struct __large_struct
     unsigned long buf[100U];
 };
 
-#define __m(x)    (*(struct __large_struct __user *)(x))
+#define __m(x) (*(struct __large_struct __user *)(x))
 
 /**
  * @defgroup GetUser 从用户空间读取数据
@@ -62,28 +62,40 @@ struct __large_struct
  * @note 调用者必须先用access_ok()检查指针
  * @note 失败时x被设置为0
  */
-#define __get_user(x, ptr)    \
-({                    \
-    int __gu_err = 0;        \
-    __get_user_common((x), sizeof(*(ptr)), ptr);    \
-    __gu_err;            \
-})
+#define __get_user(x, ptr)                           \
+    ({                                               \
+        int __gu_err = 0;                            \
+        __get_user_common((x), sizeof(*(ptr)), ptr); \
+        __gu_err;                                    \
+    })
 
 /**
  * @brief 通用用户空间读取宏
  *
  * @details 根据数据大小选择相应的加载指令
  */
-#define __get_user_common(val, size, ptr)        \
-do {                        \
-    switch (size) {                \
-    case 1U: __get_data_asm(val, "ld.b", ptr); break;    \
-    case 2U: __get_data_asm(val, "ld.h", ptr); break;    \
-    case 4U: __get_data_asm(val, "ld.w", ptr); break;    \
-    case 8U: __get_data_asm(val, "ld.d", ptr); break;    \
-    default: BUILD_BUG_ON_MSG(1, "BUILD_BUG failed"); break;    \
-    }                    \
-} while (0)
+#define __get_user_common(val, size, ptr)            \
+    do                                               \
+    {                                                \
+        switch (size)                                \
+        {                                            \
+        case 1U:                                     \
+            __get_data_asm(val, "ld.b", ptr);        \
+            break;                                   \
+        case 2U:                                     \
+            __get_data_asm(val, "ld.h", ptr);        \
+            break;                                   \
+        case 4U:                                     \
+            __get_data_asm(val, "ld.w", ptr);        \
+            break;                                   \
+        case 8U:                                     \
+            __get_data_asm(val, "ld.d", ptr);        \
+            break;                                   \
+        default:                                     \
+            BUILD_BUG_ON_MSG(1, "BUILD_BUG failed"); \
+            break;                                   \
+        }                                            \
+    } while (0)
 
 /**
  * @brief 汇编指令读取用户空间数据
@@ -91,19 +103,17 @@ do {                        \
  * @details 使用指定指令从用户空间读取数据
  *          包含异常表处理
  */
-#define __get_data_asm(val, insn, ptr)        \
-{                        \
-    long __gu_tmp;                \
-                        \
-    __asm__ __volatile__(            \
-    "1:    " insn "    %1, %2            \n"    \
-    "2:                    \n"    \
-    _ASM_EXTABLE_UACCESS_ERR_ZERO(1b, 2b, %0, %1)    \
-    : "+r" (__gu_err), "=r" (__gu_tmp)        \
-    : "m" (__m(ptr)));                \
-                        \
-    (val) = (__typeof__(*(ptr))) __gu_tmp;        \
-}
+#define __get_data_asm(val, insn, ptr)                                                                  \
+    {                                                                                                   \
+        long __gu_tmp;                                                                                  \
+                                                                                                        \
+        __asm__ __volatile__("1:    " insn "    %1, %2            \n"                                   \
+                             "2:                    \n" _ASM_EXTABLE_UACCESS_ERR_ZERO(1b, 2b, % 0, % 1) \
+                             : "+r"(__gu_err), "=r"(__gu_tmp)                                           \
+                             : "m"(__m(ptr)));                                                          \
+                                                                                                        \
+        (val) = (__typeof__(*(ptr)))__gu_tmp;                                                           \
+    }
 
 /** @} */
 
@@ -125,30 +135,42 @@ do {                        \
  *
  * @note 调用者必须先用access_ok()检查指针
  */
-#define __put_user(x, ptr)    \
-({                    \
-    int __pu_err = 0;            \
-    __typeof__(*(ptr)) __pu_val;        \
-    __pu_val = (x);                \
-    __put_user_common(ptr, sizeof(*(ptr)));    \
-    __pu_err;                \
-})
+#define __put_user(x, ptr)                      \
+    ({                                          \
+        int __pu_err = 0;                       \
+        __typeof__(*(ptr)) __pu_val;            \
+        __pu_val = (x);                         \
+        __put_user_common(ptr, sizeof(*(ptr))); \
+        __pu_err;                               \
+    })
 
 /**
  * @brief 通用用户空间写入宏
  *
  * @details 根据数据大小选择相应的存储指令
  */
-#define __put_user_common(ptr, size)        \
-do {                        \
-    switch (size) {                \
-    case 1U: __put_data_asm("st.b", ptr); break;    \
-    case 2U: __put_data_asm("st.h", ptr); break;    \
-    case 4U: __put_data_asm("st.w", ptr); break;    \
-    case 8U: __put_data_asm("st.d", ptr); break;    \
-    default: BUILD_BUG_ON_MSG(1, "BUILD_BUG failed"); break;    \
-    }                    \
-} while (0)
+#define __put_user_common(ptr, size)                 \
+    do                                               \
+    {                                                \
+        switch (size)                                \
+        {                                            \
+        case 1U:                                     \
+            __put_data_asm("st.b", ptr);             \
+            break;                                   \
+        case 2U:                                     \
+            __put_data_asm("st.h", ptr);             \
+            break;                                   \
+        case 4U:                                     \
+            __put_data_asm("st.w", ptr);             \
+            break;                                   \
+        case 8U:                                     \
+            __put_data_asm("st.d", ptr);             \
+            break;                                   \
+        default:                                     \
+            BUILD_BUG_ON_MSG(1, "BUILD_BUG failed"); \
+            break;                                   \
+        }                                            \
+    } while (0)
 
 /**
  * @brief 汇编指令写入用户空间数据
@@ -156,15 +178,13 @@ do {                        \
  * @details 使用指定指令向用户空间写入数据
  *          包含异常表处理
  */
-#define __put_data_asm(insn, ptr)        \
-{                        \
-    __asm__ __volatile__(            \
-    "1:    " insn "    %z2, %1        # __put_user_asm\n"    \
-    "2:                    \n"    \
-    _ASM_EXTABLE_UACCESS_ERR(1b, 2b, %0)        \
-    : "+r" (__pu_err), "=m" (__m(ptr))        \
-    : "Jr" (__pu_val));            \
-}
+#define __put_data_asm(insn, ptr)                                                             \
+    {                                                                                         \
+        __asm__ __volatile__("1:    " insn "    %z2, %1        # __put_user_asm\n"            \
+                             "2:                    \n" _ASM_EXTABLE_UACCESS_ERR(1b, 2b, % 0) \
+                             : "+r"(__pu_err), "=m"(__m(ptr))                                 \
+                             : "Jr"(__pu_val));                                               \
+    }
 
 /** @} */
 

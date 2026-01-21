@@ -29,51 +29,48 @@
  *
  * @copyright Copyright (c) 2025 AISafe64 Team
  */
-#include <commonUtils.h>
-#include <spinlock.h>
-#include <page.h>
-#include <uaccess.h>
-#include <memblock.h>
 #include <cache.h>
-#include <mmu.h>
-#include <stdint.h>
-#include <string.h>
-#include <sys/mman.h>
-#include <ttosMM.h>
-#include <spinlock.h>
-#include <stdio.h>
+#include <commonUtils.h>
 #include <cpu.h>
 #include <inttypes.h>
+#include <memblock.h>
+#include <mmu.h>
+#include <page.h>
+#include <spinlock.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/mman.h>
 #include <tlb.h>
+#include <ttosMM.h>
+#include <uaccess.h>
 #define KLOG_TAG "MM"
 #include <klog.h>
 #define V2P_BY_REG 0
 static struct mm *gp_kernel_mm;
-uint64_t __attribute__ ((aligned (PAGE_SIZE))) _kernel_mmu_table0[512];
-uint64_t __attribute__ ((aligned (PAGE_SIZE))) g_fix_map_level1[512];
-uint64_t __attribute__ ((aligned (PAGE_SIZE))) g_fix_map_level2[512];
-uint64_t __attribute__ ((aligned (PAGE_SIZE))) g_fix_map_level3[512];
+uint64_t __attribute__((aligned(PAGE_SIZE))) _kernel_mmu_table0[512];
+uint64_t __attribute__((aligned(PAGE_SIZE))) g_fix_map_level1[512];
+uint64_t __attribute__((aligned(PAGE_SIZE))) g_fix_map_level2[512];
+uint64_t __attribute__((aligned(PAGE_SIZE))) g_fix_map_level3[512];
 extern int __executable_start;
-//extern long long kernel_pgtable;
+// extern long long kernel_pgtable;
 #include <ttosBase.h>
-//#define printUart printk
+// #define printUart printk
 #define printUart
-#define VA_RAM_BASE ((virt_addr_t) vm_map_base)
-#define VA_RAM_END  (VA_RAM_BASE + ((max_low_pfn - min_low_pfn + 1) << PAGE_SIZE_SHIFT))
+#define VA_RAM_BASE ((virt_addr_t)vm_map_base)
+#define VA_RAM_END (VA_RAM_BASE + ((max_low_pfn - min_low_pfn + 1) << PAGE_SIZE_SHIFT))
 static DEFINE_SPINLOCK(ptable_lock);
-static DEFINE_SPINLOCK (fixmap_lock);
+static DEFINE_SPINLOCK(fixmap_lock);
 static DEFINE_SPINLOCK(ktmp_access_lock);
-static void mmu_table_flush (virt_addr_t vaddr);
-virt_addr_t        loongarch_alloc_vaddr (struct mm *mm, size_t page_count);
-static virt_addr_t loongarch_alloc_vaddr_with_min (struct mm *mm, size_t page_count,
-                                             virt_addr_t map_min);
-static int         mmu_map_r (struct mm *mm, virt_addr_t va, phys_addr_t pa,
-                              size_t size, uint64_t attr);
-static int         loongarch_mmu_unmap (struct mm *mm, struct mm_region *region);
-static uint64_t attr_2_mmu (uint64_t attr);
+static void mmu_table_flush(virt_addr_t vaddr);
+virt_addr_t loongarch_alloc_vaddr(struct mm *mm, size_t page_count);
+static virt_addr_t loongarch_alloc_vaddr_with_min(struct mm *mm, size_t page_count, virt_addr_t map_min);
+static int mmu_map_r(struct mm *mm, virt_addr_t va, phys_addr_t pa, size_t size, uint64_t attr);
+static int loongarch_mmu_unmap(struct mm *mm, struct mm_region *region);
+static uint64_t attr_2_mmu(uint64_t attr);
 static fixmap_set_t fixmap_pool;
 int g_last_fixmap = FIX_MAP_POOL_START;
-static bool is_large_page (uint64_t val)
+static bool is_large_page(uint64_t val)
 {
     if (val & _PAGE_HUGE)
     {
@@ -88,11 +85,11 @@ virt_addr_t fix_map_set(int idx, phys_addr_t phy, uint64_t prot)
 {
     virt_addr_t vaddr;
     /* 不可以修改自映射 */
-    if(FIX_MAP_SELF == idx)
+    if (FIX_MAP_SELF == idx)
     {
         return 0;
     }
-    if(prot == MT_KERNEL_IO)
+    if (prot == MT_KERNEL_IO)
         vaddr = (phy | IO_BASE);
     else
         vaddr = fix_map_vaddr(phy);
@@ -105,12 +102,12 @@ virt_addr_t fix_map_set(int idx, phys_addr_t phy, uint64_t prot)
     cache_dcache_invalidate(vaddr, PAGE_SIZE);
     return vaddr;
 }
-static int fixmap_alloc (void)
+static int fixmap_alloc(void)
 {
     int fixmap;
     long flags;
-    spin_lock_irqsave (&fixmap_lock, flags);
-    while (FIXMAP_ISSET (g_last_fixmap, &fixmap_pool))
+    spin_lock_irqsave(&fixmap_lock, flags);
+    while (FIXMAP_ISSET(g_last_fixmap, &fixmap_pool))
     {
         g_last_fixmap++;
         if (g_last_fixmap == FIXMAP_SETSIZE)
@@ -121,25 +118,25 @@ static int fixmap_alloc (void)
 #ifdef FIX_MAP_USER_HLEPER
     if (unlikely(g_last_fixmap == FIX_MAP_USER_HLEPER))
     {
-        FIXMAP_SET (g_last_fixmap, &fixmap_pool);
+        FIXMAP_SET(g_last_fixmap, &fixmap_pool);
         g_last_fixmap++;
     }
 #endif
-    FIXMAP_SET (g_last_fixmap, &fixmap_pool);
+    FIXMAP_SET(g_last_fixmap, &fixmap_pool);
     fixmap = g_last_fixmap++;
     if (g_last_fixmap == FIXMAP_SETSIZE)
     {
         g_last_fixmap = FIX_MAP_POOL_START;
     }
-    spin_unlock_irqrestore (&fixmap_lock, flags);
+    spin_unlock_irqrestore(&fixmap_lock, flags);
     return fixmap;
 }
-static void fixmap_free (int fixmap)
+static void fixmap_free(int fixmap)
 {
     long flags;
-    spin_lock_irqsave (&fixmap_lock, flags);
-    FIXMAP_CLR (fixmap, &fixmap_pool);
-    spin_unlock_irqrestore (&fixmap_lock, flags);
+    spin_lock_irqsave(&fixmap_lock, flags);
+    FIXMAP_CLR(fixmap, &fixmap_pool);
+    spin_unlock_irqrestore(&fixmap_lock, flags);
 }
 virt_addr_t fix_map_vaddr(phys_addr_t idx)
 {
@@ -153,7 +150,7 @@ virt_addr_t ktmp_access_start(phys_addr_t paddr)
 {
     virt_addr_t vaddr;
     vaddr = page_address(paddr);
-    if(vaddr)
+    if (vaddr)
     {
         return vaddr;
     }
@@ -162,7 +159,7 @@ virt_addr_t ktmp_access_start(phys_addr_t paddr)
 }
 void ktmp_access_end(virt_addr_t vaddr)
 {
-    if(vaddr >= fix_map_vaddr(FIX_MAP_POOL_START))
+    if (vaddr >= fix_map_vaddr(FIX_MAP_POOL_START))
     {
         int idx = fix_map_index(vaddr);
         fixmap_free(idx);
@@ -171,36 +168,36 @@ void ktmp_access_end(virt_addr_t vaddr)
 }
 static phys_addr_t ptable_alloc(void)
 {
-    if(page_allocer_inited())
+    if (page_allocer_inited())
     {
-//        return pages_alloc(0, ZONE_ANYWHERE);
+        //        return pages_alloc(0, ZONE_ANYWHERE);
         phys_addr_t addr = pages_alloc(0, ZONE_ANYWHERE);
-printUart("[%s:%u] addr:%p, PGDL:%p\n", __func__, __LINE__, addr, csr_read64(LOONGARCH_CSR_PGDL));
+        printUart("[%s:%u] addr:%p, PGDL:%p\n", __func__, __LINE__, addr, csr_read64(LOONGARCH_CSR_PGDL));
         return addr;
     }
     // return ttos_memblk_phys_alloc(PAGE_SIZE, PAGE_SIZE);
     phys_addr_t addr = ttos_memblk_phys_alloc(PAGE_SIZE, PAGE_SIZE);
-printUart("[%s:%u] addr:%p, PGDL:%p\n", __func__, __LINE__, addr, csr_read64(LOONGARCH_CSR_PGDL));
+    printUart("[%s:%u] addr:%p, PGDL:%p\n", __func__, __LINE__, addr, csr_read64(LOONGARCH_CSR_PGDL));
     return addr;
 }
 static void ptable_free(phys_addr_t phy)
 {
-    if(page_allocer_inited())
+    if (page_allocer_inited())
     {
         pages_free(phy, 0);
-printUart("[%s:%u] addr:%p, PGDL:%p\n", __func__, __LINE__, phy, csr_read64(LOONGARCH_CSR_PGDL));
+        printUart("[%s:%u] addr:%p, PGDL:%p\n", __func__, __LINE__, phy, csr_read64(LOONGARCH_CSR_PGDL));
         return;
     }
     ttos_memblk_free(phy, PAGE_SIZE);
-printUart("[%s:%u] addr:%p, PGDL:%p\n", __func__, __LINE__, phy, csr_read64(LOONGARCH_CSR_PGDL));
+    printUart("[%s:%u] addr:%p, PGDL:%p\n", __func__, __LINE__, phy, csr_read64(LOONGARCH_CSR_PGDL));
 }
 static uint64_t *ptable_get(phys_addr_t pte, int level, irq_flags_t *flags)
 {
     spin_lock_irqsave(&ptable_lock, *flags);
-    if(page_allocer_inited())
+    if (page_allocer_inited())
     {
         virt_addr_t vaddr = page_address(pte);
-        if(vaddr)
+        if (vaddr)
         {
             return (uint64_t *)vaddr;
         }
@@ -214,7 +211,7 @@ static void ptable_put(irq_flags_t *flags)
 static void ptable_entry_set(phys_addr_t pte, int level, int idx, uint64_t value)
 {
     irq_flags_t flags;
-    uint64_t * table = ptable_get(pte, level, &flags);
+    uint64_t *table = ptable_get(pte, level, &flags);
     table[idx] = value;
     ptable_put(&flags);
 }
@@ -222,7 +219,7 @@ static uint64_t ptable_entry_get(phys_addr_t pte, int level, int idx)
 {
     uint64_t value;
     irq_flags_t flags;
-    uint64_t * table = ptable_get(pte, level, &flags);
+    uint64_t *table = ptable_get(pte, level, &flags);
     value = table[idx];
     ptable_put(&flags);
     return value;
@@ -230,7 +227,7 @@ static uint64_t ptable_entry_get(phys_addr_t pte, int level, int idx)
 static void ptable_clear(phys_addr_t pte, int level)
 {
     irq_flags_t flags;
-    uint64_t * table = ptable_get(pte, level, &flags);
+    uint64_t *table = ptable_get(pte, level, &flags);
     memset(table, 0, PAGE_SIZE);
     ptable_put(&flags);
 }
@@ -238,10 +235,10 @@ static int ptable_valid_num(phys_addr_t pte, int level)
 {
     int i, count = 0;
     irq_flags_t flags;
-    uint64_t * table = ptable_get(pte, level, &flags);
-    for(i = 0; i < 512; i++)
+    uint64_t *table = ptable_get(pte, level, &flags);
+    for (i = 0; i < 512; i++)
     {
-        if(table[i] != 0)
+        if (table[i] != 0)
         {
             count++;
         }
@@ -249,62 +246,60 @@ static int ptable_valid_num(phys_addr_t pte, int level)
     ptable_put(&flags);
     return count;
 }
-static phys_addr_t v2p_by_pvoffset (virt_addr_t va, phys_addr_t pvoffset)
+static phys_addr_t v2p_by_pvoffset(virt_addr_t va, phys_addr_t pvoffset)
 {
     phys_addr_t pa = va + pvoffset;
     return pa;
 }
-static phys_addr_t mmu_v2p_r (struct mm *mm, virt_addr_t v_addr)
+static phys_addr_t mmu_v2p_r(struct mm *mm, virt_addr_t v_addr)
 {
     phys_addr_t pte = mm->mmu_table_base;
     uint64_t value;
-    int       level;
-    int       off;
+    int level;
+    int off;
     for (level = mm->first_level; level < MAX_TABLE_LEVEL + 1; level++)
     {
-        off = GET_TABLE_OFF (level, v_addr);
+        off = GET_TABLE_OFF(level, v_addr);
         value = ptable_entry_get(pte, level, off);
         if (value == (uint64_t)NULL)
         {
             /* entry无效 */
             return 0ULL;
         }
-        if (!is_large_page(value) && (level < MAX_TABLE_LEVEL) )
+        if (!is_large_page(value) && (level < MAX_TABLE_LEVEL))
         {
             /* 如果不是最后一级，则取出表项，继续查找下一级 */
             pte = value & ENTRY_ADDRESS_MASK;
         }
-        else if(is_large_page(value))
+        else if (is_large_page(value))
         {
             /* 大页 ,返回PA */
-            return (value & ENTRY_HUGE_ADDRESS_MASK)
-                   + (v_addr - LEVEL_SIZE_ALIGN (level, v_addr));
+            return (value & ENTRY_HUGE_ADDRESS_MASK) + (v_addr - LEVEL_SIZE_ALIGN(level, v_addr));
         }
         else
         {
             /* 最后一级页面，返回PA */
-            return (value & ENTRY_ADDRESS_MASK)
-                   + (v_addr - LEVEL_SIZE_ALIGN (level, v_addr));
+            return (value & ENTRY_ADDRESS_MASK) + (v_addr - LEVEL_SIZE_ALIGN(level, v_addr));
         }
     }
     /* never reach */
     return 0ULL;
 }
-static uintptr_t mmu_get_attr_r (struct mm *mm, virt_addr_t v_addr)
+static uintptr_t mmu_get_attr_r(struct mm *mm, virt_addr_t v_addr)
 {
     phys_addr_t pte = mm->mmu_table_base;
     uint64_t value;
-    int       level;
-    int       off;
+    int level;
+    int off;
     for (level = mm->first_level; level < MAX_TABLE_LEVEL + 1; level++)
     {
-        off = GET_TABLE_OFF (level, v_addr);
-        value = ptable_entry_get(pte,level, off);
+        off = GET_TABLE_OFF(level, v_addr);
+        value = ptable_entry_get(pte, level, off);
         if ((value != 0) && (level < MAX_TABLE_LEVEL))
         {
             pte = (value & ENTRY_ADDRESS_MASK);
         }
-        else if(value != (uint64_t)NULL)
+        else if (value != (uint64_t)NULL)
         {
             return value & ENTRY_ATTRIB_MASK;
         }
@@ -315,33 +310,32 @@ static uintptr_t mmu_get_attr_r (struct mm *mm, virt_addr_t v_addr)
     }
     return 0;
 }
-static int map_single_entry_r (struct mm *mm, int level, virt_addr_t va,
-                               phys_addr_t pa, uint64_t attr)
+static int map_single_entry_r(struct mm *mm, int level, virt_addr_t va, phys_addr_t pa, uint64_t attr)
 {
-    int         level_final = level;
+    int level_final = level;
     phys_addr_t pte = mm->mmu_table_base;
     uint64_t value;
     phys_addr_t page;
-    int         off;
-    if (!IS_LEVEL_ALIGN (level_final, va))
+    int off;
+    if (!IS_LEVEL_ALIGN(level_final, va))
     {
         return -1;
     }
-    if (!IS_LEVEL_ALIGN (level_final, pa))
+    if (!IS_LEVEL_ALIGN(level_final, pa))
     {
         return -1;
     }
     for (level = 0; level < level_final; level++)
     {
-        off = GET_TABLE_OFF (level, va);
-        value = ptable_entry_get(pte,level, off);
+        off = GET_TABLE_OFF(level, va);
+        value = ptable_entry_get(pte, level, off);
         /* 页表不存在 */
         if (value == (uint64_t)NULL)
         {
             /* 创建下级表 */
-printUart("[%s:%lu] ptable_alloc() begin\n", __func__, __LINE__);
+            printUart("[%s:%lu] ptable_alloc() begin\n", __func__, __LINE__);
             page = ptable_alloc();
-printUart("[%s:%lu] ptable_alloc() end %p\n", __func__, __LINE__, page);
+            printUart("[%s:%lu] ptable_alloc() end %p\n", __func__, __LINE__, page);
             if (!page)
             {
                 return -1;
@@ -353,20 +347,19 @@ printUart("[%s:%lu] ptable_alloc() end %p\n", __func__, __LINE__, page);
         }
         pte = value & ENTRY_ADDRESS_MASK;
     }
-    off = GET_TABLE_OFF (level, va);
-   // if((level == 3) && (pte == 0xfffd000))
+    off = GET_TABLE_OFF(level, va);
+    // if((level == 3) && (pte == 0xfffd000))
     if (level == MAX_TABLE_LEVEL)
     {
-        ptable_entry_set(pte, level, off, PAGE_DESC (attr, pa));
+        ptable_entry_set(pte, level, off, PAGE_DESC(attr, pa));
     }
     else
     {
-        ptable_entry_set(pte, level, off, BLOCK_DESC (attr, pa));
+        ptable_entry_set(pte, level, off, BLOCK_DESC(attr, pa));
     }
     return 0;
 }
-static size_t ummap_single_entry_r(struct mm *mm, virt_addr_t va, size_t size, bool is_unmap,
-                                   uint64_t new_attr)
+static size_t ummap_single_entry_r(struct mm *mm, virt_addr_t va, size_t size, bool is_unmap, uint64_t new_attr)
 {
     int level = 0;
     phys_addr_t pte_lv[MAX_TABLE_LEVEL + 1];
@@ -399,15 +392,14 @@ static size_t ummap_single_entry_r(struct mm *mm, virt_addr_t va, size_t size, b
         else
         {
             /* 如果当前的地址是在块映射中,且并非解映射整个块则需要拆块 */
-            if ((value != (uint64_t)NULL)  &&
-                (size < LEVEL_SIZE(level) || !IS_LEVEL_ALIGN(level, va)))
+            if ((value != (uint64_t)NULL) && (size < LEVEL_SIZE(level) || !IS_LEVEL_ALIGN(level, va)))
             {
                 attr = value & ENTRY_ATTRIB_MASK;
                 phy = value & ENTRY_ADDRESS_MASK;
                 /* 创建下级表 */
-printUart("[%s:%lu] ptable_alloc() begin\n", __func__, __LINE__);
+                printUart("[%s:%lu] ptable_alloc() begin\n", __func__, __LINE__);
                 phys_addr_t page = ptable_alloc();
-printUart("[%s:%lu] ptable_alloc() end %p\n", __func__, __LINE__, page);
+                printUart("[%s:%lu] ptable_alloc() end %p\n", __func__, __LINE__, page);
                 if (!page)
                 {
                     return 0;
@@ -433,9 +425,9 @@ printUart("[%s:%lu] ptable_alloc() end %p\n", __func__, __LINE__, page);
                     /* 如果当前为空表 则再减一次引用计数 */
                     if (ptable_valid_num(pte_lv[level], level) == 0)
                     {
-printUart("[%s:%lu] ptable_free() begin\n", __func__, __LINE__);
+                        printUart("[%s:%lu] ptable_free() begin\n", __func__, __LINE__);
                         ptable_free(pte_lv[level]);
-printUart("[%s:%lu] ptable_free() end %p\n", __func__, __LINE__, pte_lv[level]);
+                        printUart("[%s:%lu] ptable_free() end %p\n", __func__, __LINE__, pte_lv[level]);
                         /* 如果当前表已为空表则需要对上级表的引用计数-1并删除表 */
                         int __release_level = level - 1;
                         while (__release_level >= mm->first_level)
@@ -446,9 +438,10 @@ printUart("[%s:%lu] ptable_free() end %p\n", __func__, __LINE__, pte_lv[level]);
                             if ((ptable_valid_num(pte_lv[__release_level], __release_level) == 0) &&
                                 (__release_level != mm->first_level))
                             {
-printUart("[%s:%lu] ptable_free() begin\n", __func__, __LINE__);
+                                printUart("[%s:%lu] ptable_free() begin\n", __func__, __LINE__);
                                 ptable_free(pte_lv[__release_level]);
-printUart("[%s:%lu] ptable_free() end %p\n", __func__, __LINE__, pte_lv[__release_level]);
+                                printUart("[%s:%lu] ptable_free() end %p\n", __func__, __LINE__,
+                                          pte_lv[__release_level]);
                             }
                             else
                             {
@@ -462,9 +455,8 @@ printUart("[%s:%lu] ptable_free() end %p\n", __func__, __LINE__, pte_lv[__releas
                 {
                     /* 修改当前映射 */
                     ptable_entry_set(pte_lv[level], level, off,
-                                     level == MAX_TABLE_LEVEL
-                                         ? PAGE_DESC(new_attr, value & ENTRY_ADDRESS_MASK)
-                                         : BLOCK_DESC(new_attr, value & ENTRY_ADDRESS_MASK));
+                                     level == MAX_TABLE_LEVEL ? PAGE_DESC(new_attr, value & ENTRY_ADDRESS_MASK)
+                                                              : BLOCK_DESC(new_attr, value & ENTRY_ADDRESS_MASK));
                 }
                 return LEVEL_SIZE(level);
             }
@@ -472,13 +464,13 @@ printUart("[%s:%lu] ptable_free() end %p\n", __func__, __LINE__, pte_lv[__releas
     }
     return 0;
 }
-static int mmu_unmap_r (struct mm *mm, virt_addr_t va, size_t size)
+static int mmu_unmap_r(struct mm *mm, virt_addr_t va, size_t size)
 {
     size_t unmap_size = 0;
     while (size)
     {
-        unmap_size = ummap_single_entry_r (mm, va, size, true, 0);
-        mmu_table_flush (va);
+        unmap_size = ummap_single_entry_r(mm, va, size, true, 0);
+        mmu_table_flush(va);
         if (unmap_size == 0)
         {
             return 0;
@@ -488,44 +480,43 @@ static int mmu_unmap_r (struct mm *mm, virt_addr_t va, size_t size)
     }
     return 0;
 }
-static int mmu_map_r (struct mm *mm, virt_addr_t va, phys_addr_t pa,
-                      size_t size, uint64_t attr)
+static int mmu_map_r(struct mm *mm, virt_addr_t va, phys_addr_t pa, size_t size, uint64_t attr)
 {
     size_t i;
     size_t count;
-    int    level;
-    int    ret;
-    level = GET_MAP_LEVEL (va, pa, size);
+    int level;
+    int ret;
+    level = GET_MAP_LEVEL(va, pa, size);
     // TODO:jcai ummap_single_entry_r() 中通过 MAX_TABLE_LEVEL 强制使用4级页表
     // 所以这里也强制使用4级页表，这是临时修改
     level = MAX_TABLE_LEVEL;
-    count = size >> LEVEL_SIZE_SHIFT (level);
-    if (!IS_LEVEL_ALIGN (level, pa))
+    count = size >> LEVEL_SIZE_SHIFT(level);
+    if (!IS_LEVEL_ALIGN(level, pa))
     {
         return -1;
     }
-    if (!IS_LEVEL_ALIGN (level, va))
+    if (!IS_LEVEL_ALIGN(level, va))
     {
         return -1;
     }
     for (i = 0; i < count; i++)
     {
-        ret = map_single_entry_r (mm, level, va, pa, attr);
-        mmu_table_flush (va);
-        va += LEVEL_SIZE (level);
-        pa += LEVEL_SIZE (level);
+        ret = map_single_entry_r(mm, level, va, pa, attr);
+        mmu_table_flush(va);
+        va += LEVEL_SIZE(level);
+        pa += LEVEL_SIZE(level);
         if (ret != 0)
         {
-             mmu_table_flush (0);
+            mmu_table_flush(0);
             return ret;
         }
     }
-     mmu_table_flush (0);
+    mmu_table_flush(0);
     return 0;
 }
-static void mmu_table_flush (virt_addr_t vaddr)
+static void mmu_table_flush(virt_addr_t vaddr)
 {
-    if(vaddr == 0)
+    if (vaddr == 0)
         invtlb_all(INVTLB_CURRENT_ALL, 0, 0);
     else
     {
@@ -533,28 +524,28 @@ static void mmu_table_flush (virt_addr_t vaddr)
         invtlb_addr(INVTLB_ADDR_GTRUE_OR_ASID, 0, vaddr);
     }
 }
-static uint64_t attr_2_mmu (uint64_t attr)
+static uint64_t attr_2_mmu(uint64_t attr)
 {
     uint64_t return_attr = 0;
     if (attr & MT_NO_ACCESS)
     {
         return_attr = 0;
     }
-    switch (MT_TYPE (attr))
+    switch (MT_TYPE(attr))
     {
-        case MT_DEV:
-        case MT_NON_CACHEABLE:
-            return_attr |=_CACHE_SUC;
-            break;
-        case MT_WRITE_THROUGHOUT:
-        case MT_MEMORY:
-            return_attr |= _CACHE_CC;
-            break;
-        default:
-            return_attr |= _CACHE_CC;
-            break;
+    case MT_DEV:
+    case MT_NON_CACHEABLE:
+        return_attr |= _CACHE_SUC;
+        break;
+    case MT_WRITE_THROUGHOUT:
+    case MT_MEMORY:
+        return_attr |= _CACHE_CC;
+        break;
+    default:
+        return_attr |= _CACHE_CC;
+        break;
     }
-     /* 用户态可访问 */
+    /* 用户态可访问 */
     if (attr & MT_USER)
     {
         return_attr |= _PAGE_USER;
@@ -563,7 +554,7 @@ static uint64_t attr_2_mmu (uint64_t attr)
     {
         return_attr |= _PAGE_KERN;
     }
-     /* 不可执行 */
+    /* 不可执行 */
     if (attr & MT_EXECUTE_NEVER)
     {
         return_attr |= _PAGE_NO_EXEC;
@@ -575,25 +566,24 @@ static uint64_t attr_2_mmu (uint64_t attr)
     }
     return return_attr;
 }
-virt_addr_t loongarch_alloc_vaddr (struct mm *mm, size_t page_count)
+virt_addr_t loongarch_alloc_vaddr(struct mm *mm, size_t page_count)
 {
-    return loongarch_alloc_vaddr_with_min (mm, page_count, 0);
+    return loongarch_alloc_vaddr_with_min(mm, page_count, 0);
 }
-static virt_addr_t loongarch_alloc_vaddr_with_min (struct mm *mm, size_t page_count,
-                                             virt_addr_t map_min)
+static virt_addr_t loongarch_alloc_vaddr_with_min(struct mm *mm, size_t page_count, virt_addr_t map_min)
 {
     virt_addr_t va, find_va = 0;
-    int         n = 0;
+    int n = 0;
     virt_addr_t va_start, va_end;
     if (mm->mm_region_type == MM_REGION_TYPE_KERNEL)
     {
         va_start = map_min ? map_min : vm_map_base;
-        va_end   = ((UL (1) << ARCH_VADDRESS_WIDTH_BITS) - 1) + vm_map_base;
+        va_end = ((UL(1) << ARCH_VADDRESS_WIDTH_BITS) - 1) + vm_map_base;
     }
     else
     {
         va_start = map_min ? map_min : USER_SPACE_START;
-        if(va_start < MMAP_START_VADDR)
+        if (va_start < MMAP_START_VADDR)
         {
             va_start = MMAP_START_VADDR;
         }
@@ -611,9 +601,9 @@ static virt_addr_t loongarch_alloc_vaddr_with_min (struct mm *mm, size_t page_co
             continue;
         }
 #endif
-        if (mmu_v2p_r (mm, va) != 0ULL)
+        if (mmu_v2p_r(mm, va) != 0ULL)
         {
-            n       = 0;
+            n = 0;
             find_va = 0;
             continue;
         }
@@ -629,7 +619,7 @@ static virt_addr_t loongarch_alloc_vaddr_with_min (struct mm *mm, size_t page_co
     }
     return -1;
 }
-void pat_init (void)
+void pat_init(void)
 {
     /* TODO LOONGARCH */
 #if 0
@@ -654,13 +644,13 @@ void pat_init (void)
     }
 #endif
 }
-static int loongarch_mmu_init (struct mm *mm)
+static int loongarch_mmu_init(struct mm *mm)
 {
     phys_addr_t addr;
     virt_addr_t v_addr;
     if (mm)
     {
-        mm->page_size       = PAGE_SIZE;
+        mm->page_size = PAGE_SIZE;
         mm->page_size_shift = PAGE_SIZE_SHIFT;
         mm->first_level = 0;
         if (mm->mm_region_type == MM_REGION_TYPE_KERNEL)
@@ -668,12 +658,12 @@ static int loongarch_mmu_init (struct mm *mm)
             if (gp_kernel_mm == NULL)
             {
                 /* TODO LOONGARCH */
-                gp_kernel_mm       = mm;
-                mm->mmu_table_base = csr_read64(LOONGARCH_CSR_PGDH);/* Page table base address when VA[VALEN-1] = 1 */
+                gp_kernel_mm = mm;
+                mm->mmu_table_base = csr_read64(LOONGARCH_CSR_PGDH); /* Page table base address when VA[VALEN-1] = 1 */
             }
             else
             {
-                KLOG_E ("can not create kernel mm");
+                KLOG_E("can not create kernel mm");
             }
         }
         else if (mm->mm_region_type == MM_REGION_TYPE_USER)
@@ -681,39 +671,43 @@ static int loongarch_mmu_init (struct mm *mm)
             /* TODO LOONGARCH */
             mm->pv_offset = gp_kernel_mm->pv_offset;
             mm->mmu_table_base = csr_read64(LOONGARCH_CSR_PGDL); /* Page table base address when VA[VALEN-1] = 0 */
-printUart("[%s:%lu] ptable_alloc() begin\n", __func__, __LINE__);
+            printUart("[%s:%lu] ptable_alloc() begin\n", __func__, __LINE__);
             addr = ptable_alloc();
-printUart("[%s:%lu] ptable_alloc() end %p\n", __func__, __LINE__, addr);
-//            v_addr = (0x9000000000000000 | addr);
+            printUart("[%s:%lu] ptable_alloc() end %p\n", __func__, __LINE__, addr);
+            //            v_addr = (0x9000000000000000 | addr);
             v_addr = TO_CACHE(addr);
-            printUart("[%s:%d] v_addr = %p, data = 0x%llx, %d\n", __FUNCTION__, __LINE__,v_addr, *(long *)v_addr, addr == mm->mmu_table_base);
-            mm->mmu_table_base = addr;//csr_read64(LOONGARCH_CSR_PGDL); /* Page table base address when VA[VALEN-1] = 0 */
+            printUart("[%s:%d] v_addr = %p, data = 0x%llx, %d\n", __FUNCTION__, __LINE__, v_addr, *(long *)v_addr,
+                      addr == mm->mmu_table_base);
+            mm->mmu_table_base =
+                addr;    // csr_read64(LOONGARCH_CSR_PGDL); /* Page table base address when VA[VALEN-1] = 0 */
             // memset((void *)v_addr, 0x0, 4096);
             ptable_clear(addr, 0);
-            printUart("%s,%d v_addr = %p, data = 0x%llx\n\r", __FUNCTION__, __LINE__,v_addr, *(long *)v_addr);
-            printUart("%s,%d MM_REGION_TYPE_USER: pv_offset = 0x%llx, mmu_table_base = 0x%llx\n\r", __FUNCTION__, __LINE__,mm->pv_offset, mm->mmu_table_base);
+            printUart("%s,%d v_addr = %p, data = 0x%llx\n\r", __FUNCTION__, __LINE__, v_addr, *(long *)v_addr);
+            printUart("%s,%d MM_REGION_TYPE_USER: pv_offset = 0x%llx, mmu_table_base = 0x%llx\n\r", __FUNCTION__,
+                      __LINE__, mm->pv_offset, mm->mmu_table_base);
         }
-        //ptable_clear(mm->mmu_table_base, 0);
+        // ptable_clear(mm->mmu_table_base, 0);
         if (mm->mm_region_type == MM_REGION_TYPE_KERNEL)
         {
             /* TODO LOONGARCH */
-           // (&kernel_pgtable)[GET_TABLE_OFF (0, FIX_MAP_START)] = TABLE_DESC (v2p_by_pvoffset ((virt_addr_t)g_fix_map_level1,gp_kernel_mm->pv_offset));
+            // (&kernel_pgtable)[GET_TABLE_OFF (0, FIX_MAP_START)] = TABLE_DESC (v2p_by_pvoffset
+            // ((virt_addr_t)g_fix_map_level1,gp_kernel_mm->pv_offset));
         }
         return !mm->mmu_table_base;
     }
     return -1;
 }
-static int loongarch_mmu_deinit (struct mm *mm)
+static int loongarch_mmu_deinit(struct mm *mm)
 {
     if (mm->mm_region_type == MM_REGION_TYPE_USER)
     {
-printUart("[%s:%lu] ptable_free() begin\n", __func__, __LINE__);
+        printUart("[%s:%lu] ptable_free() begin\n", __func__, __LINE__);
         ptable_free(mm->mmu_table_base);
-printUart("[%s:%lu] ptable_free() end %p\n", __func__, __LINE__, mm->mmu_table_base);
+        printUart("[%s:%lu] ptable_free() end %p\n", __func__, __LINE__, mm->mmu_table_base);
     }
     return 0;
 }
-static int loongarch_mmu_switch_space (struct mm *from, struct mm *to)
+static int loongarch_mmu_switch_space(struct mm *from, struct mm *to)
 {
     if (to == NULL && from == NULL)
     {
@@ -735,15 +729,17 @@ static int loongarch_mmu_switch_space (struct mm *from, struct mm *to)
     switch (to->mm_region_type)
     {
     case MM_REGION_TYPE_KERNEL:
-        csr_write64(to->mmu_table_base,LOONGARCH_CSR_PGDH);
-        mmu_table_flush (0);
+        csr_write64(to->mmu_table_base, LOONGARCH_CSR_PGDH);
+        mmu_table_flush(0);
         break;
     case MM_REGION_TYPE_USER:
-    /* TODO LOONGARCH */
-        csr_write64(to->mmu_table_base,LOONGARCH_CSR_PGDL);
-        csr_write64(to->asid,LOONGARCH_CSR_ASID);
-        mmu_table_flush (0);
-        printUart("[%s:%d]c%d %s(%p) asid = 0x%llx, pgdl = %p\n", __FUNCTION__, __LINE__, csr_read32(LOONGARCH_CSR_CPUID), ttosGetRunningTaskName(), ttosGetRunningTask(), to->asid, to->mmu_table_base);
+        /* TODO LOONGARCH */
+        csr_write64(to->mmu_table_base, LOONGARCH_CSR_PGDL);
+        csr_write64(to->asid, LOONGARCH_CSR_ASID);
+        mmu_table_flush(0);
+        printUart("[%s:%d]c%d %s(%p) asid = 0x%llx, pgdl = %p\n", __FUNCTION__, __LINE__,
+                  csr_read32(LOONGARCH_CSR_CPUID), ttosGetRunningTaskName(), ttosGetRunningTask(), to->asid,
+                  to->mmu_table_base);
         break;
     case MM_REGION_TYPE_HYPER:
     default:
@@ -751,20 +747,20 @@ static int loongarch_mmu_switch_space (struct mm *from, struct mm *to)
     }
     return 0;
 }
-int kmap (virt_addr_t va, phys_addr_t pa, size_t size, uint64_t attr)
+int kmap(virt_addr_t va, phys_addr_t pa, size_t size, uint64_t attr)
 {
-    attr = attr_2_mmu (attr);
-    return mmu_map_r (gp_kernel_mm, va, pa, size, attr);
+    attr = attr_2_mmu(attr);
+    return mmu_map_r(gp_kernel_mm, va, pa, size, attr);
 }
-static int loongarch_mmu_map (struct mm *mm, struct mm_region *region)
+static int loongarch_mmu_map(struct mm *mm, struct mm_region *region)
 {
     uint64_t attr;
-    int      ret;
+    int ret;
     if (mm == NULL || region == NULL)
     {
         return -1;
     }
-    attr = attr_2_mmu (region->mem_attr);
+    attr = attr_2_mmu(region->mem_attr);
     if (region->flags & MAP_FIXED)
     {
         region->virtual_address = region->map_min;
@@ -773,26 +769,25 @@ static int loongarch_mmu_map (struct mm *mm, struct mm_region *region)
     {
         if (!region->virtual_address)
         {
-            region->virtual_address = loongarch_alloc_vaddr_with_min (
-                mm, region->region_page_count, region->map_min);
+            region->virtual_address = loongarch_alloc_vaddr_with_min(mm, region->region_page_count, region->map_min);
         }
     }
-    ret = mmu_map_r (mm, region->virtual_address, region->physical_address,
-                    region->region_page_count * mm->page_size, attr);
+    ret = mmu_map_r(mm, region->virtual_address, region->physical_address, region->region_page_count * mm->page_size,
+                    attr);
     return ret;
 }
-static int loongarch_mmu_modify (struct mm *mm, struct mm_region *region)
+static int loongarch_mmu_modify(struct mm *mm, struct mm_region *region)
 {
     uint64_t attr;
-    int      ret;
-    attr = attr_2_mmu (region->mem_attr);
+    int ret;
+    attr = attr_2_mmu(region->mem_attr);
     size_t modify_size = 0;
     size_t size = region->region_page_count * mm->page_size;
     virt_addr_t va = region->virtual_address;
     while (size)
     {
-        modify_size = ummap_single_entry_r (mm, va, size, false, attr);
-        mmu_table_flush (va);
+        modify_size = ummap_single_entry_r(mm, va, size, false, attr);
+        mmu_table_flush(va);
         if (modify_size == 0)
         {
             return -1;
@@ -802,61 +797,54 @@ static int loongarch_mmu_modify (struct mm *mm, struct mm_region *region)
     }
     return 0;
 }
-static int loongarch_mmu_unmap (struct mm *mm, struct mm_region *region)
+static int loongarch_mmu_unmap(struct mm *mm, struct mm_region *region)
 {
-    int ret = mmu_unmap_r (mm, region->virtual_address,
-                           region->region_page_count * mm->page_size);
+    int ret = mmu_unmap_r(mm, region->virtual_address, region->region_page_count * mm->page_size);
     return ret;
 }
 /* 通过查mmu映射表，找到v_addr映射的物理地址 */
-static phys_addr_t loongarch_mmu_v2p (struct mm *mm, virt_addr_t v_addr)
+static phys_addr_t loongarch_mmu_v2p(struct mm *mm, virt_addr_t v_addr)
 {
-    return mmu_v2p_r (mm, v_addr);
+    return mmu_v2p_r(mm, v_addr);
 }
-static int loongarch_mmu_apply_change (struct mm *mm)
+static int loongarch_mmu_apply_change(struct mm *mm)
 {
     if (mm == NULL)
         return -1;
     return 0;
 }
-static void tables_print_r (virt_addr_t table_base_va,
-                            phys_addr_t table_base,
-                            unsigned int table_entries, unsigned int level,
-                            int (*output) (const char *str));
-static int  loongarch_mmu_print_table (struct mm *mm, int (*output) (const char *str))
+static void tables_print_r(virt_addr_t table_base_va, phys_addr_t table_base, unsigned int table_entries,
+                           unsigned int level, int (*output)(const char *str));
+static int loongarch_mmu_print_table(struct mm *mm, int (*output)(const char *str))
 {
     virt_addr_t table_base_va = 0;
     if (mm->mm_region_type == MM_REGION_TYPE_KERNEL)
     {
         table_base_va = KERNEL_SPACE_START;
     }
-    tables_print_r (table_base_va,
-                    mm->mmu_table_base, 512, mm->first_level,
-                    output);
+    tables_print_r(table_base_va, mm->mmu_table_base, 512, mm->first_level, output);
     return 0;
 }
-static struct mmu_ops loongarch_mmu_ops = {
-                                      .init         = loongarch_mmu_init,
-                                      .switch_space = loongarch_mmu_switch_space,
-                                      .map          = loongarch_mmu_map,
-                                      .modify       = loongarch_mmu_modify,
-                                      .unmap        = loongarch_mmu_unmap,
-                                      .v2p          = loongarch_mmu_v2p,
-                                      .valloc       = loongarch_alloc_vaddr,
-                                      .apply_change = loongarch_mmu_apply_change,
-                                      .print_table  = loongarch_mmu_print_table,
-                                      .deinit       = loongarch_mmu_deinit };
-struct mmu_ops *arch_get_mmu_ops (void)
+static struct mmu_ops loongarch_mmu_ops = {.init = loongarch_mmu_init,
+                                           .switch_space = loongarch_mmu_switch_space,
+                                           .map = loongarch_mmu_map,
+                                           .modify = loongarch_mmu_modify,
+                                           .unmap = loongarch_mmu_unmap,
+                                           .v2p = loongarch_mmu_v2p,
+                                           .valloc = loongarch_alloc_vaddr,
+                                           .apply_change = loongarch_mmu_apply_change,
+                                           .print_table = loongarch_mmu_print_table,
+                                           .deinit = loongarch_mmu_deinit};
+struct mmu_ops *arch_get_mmu_ops(void)
 {
     return &(loongarch_mmu_ops);
 }
-#define TB_OUT(...)                                                            \
-    snprintf (outbuffer, sizeof (outbuffer), ##__VA_ARGS__);                   \
-    output (outbuffer);
+#define TB_OUT(...)                                        \
+    snprintf(outbuffer, sizeof(outbuffer), ##__VA_ARGS__); \
+    output(outbuffer);
 #define invalid_descriptors_ommited "%s(%d invalid descriptors omitted)\n"
-static const char level_spacers[][16]
-    = { "[LV0] ", "  [LV1] ", "    [LV2] ", "      [LV3] " };
-static void desc_print (uint64_t desc, int (*output) (const char *str))
+static const char level_spacers[][16] = {"[LV0] ", "  [LV1] ", "    [LV2] ", "      [LV3] "};
+static void desc_print(uint64_t desc, int (*output)(const char *str))
 {
 #if 0
     char     outbuffer[128];
@@ -889,9 +877,8 @@ static void desc_print (uint64_t desc, int (*output) (const char *str))
     TB_OUT (((LOWER_ATTRS (NS) & desc) != 0ULL) ? "-NS" : "-S");
 #endif
 }
-static void tables_print_r (virt_addr_t table_base_va,
-                     phys_addr_t table_base, unsigned int table_entries,
-                     unsigned int level, int (*output) (const char *str))
+static void tables_print_r(virt_addr_t table_base_va, phys_addr_t table_base, unsigned int table_entries,
+                           unsigned int level, int (*output)(const char *str))
 {
 #if 0
     uint64_t     desc;
@@ -967,26 +954,26 @@ static void tables_print_r (virt_addr_t table_base_va,
 #undef TB_OUT
 #endif
 }
-void show_page_table(phys_addr_t table_base, unsigned int table_entries,int level)
+void show_page_table(phys_addr_t table_base, unsigned int table_entries, int level)
 {
-    uint64_t     desc;
-    unsigned int table_idx    = 0U;
-    size_t       level_size   = LEVEL_SIZE (level);
+    uint64_t desc;
+    unsigned int table_idx = 0U;
+    size_t level_size = LEVEL_SIZE(level);
     while (table_idx < table_entries)
     {
         desc = ptable_entry_get(table_base, level, table_idx);
-        if(desc != NULL)
+        if (desc != NULL)
         {
-            printUart("level:[%d] desc:[%p] idx:[%d] \n\r",level,desc,table_idx);
+            printUart("level:[%d] desc:[%p] idx:[%d] \n\r", level, desc, table_idx);
         }
         table_idx++;
     }
 }
-void show_page_index(phys_addr_t table_base, unsigned int idx,int level)
+void show_page_index(phys_addr_t table_base, unsigned int idx, int level)
 {
-    uint64_t     desc;
-    unsigned int table_idx    = 0U;
-    size_t       level_size   = LEVEL_SIZE (level);
+    uint64_t desc;
+    unsigned int table_idx = 0U;
+    size_t level_size = LEVEL_SIZE(level);
     desc = ptable_entry_get(table_base, level, idx);
-    printUart("level:[%d] desc:[0x%lx] idx:[%d] \n\r",level,desc,idx);
+    printUart("level:[%d] desc:[0x%lx] idx:[%d] \n\r", level, desc, idx);
 }
