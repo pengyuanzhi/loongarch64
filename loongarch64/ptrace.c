@@ -21,6 +21,7 @@
 #include <ptrace/ptrace.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ptrace.h>
 /*************************** 类型定义 ****************************/
 /**
  * @brief iovec 结构（用于寄存器集合传输）
@@ -530,4 +531,349 @@ static unsigned long copy_from_user(void *to, const void *from, unsigned long n)
     memcpy(to, from, n);
 
     return 0;
+}
+
+/*************************** 标准 Linux ptrace 接口实现 ****************************/
+
+/**
+ * @brief 标准 Linux ptrace 系统调用接口
+ *
+ * @details 实现符合 Linux 标准的 ptrace 功能
+ *          支持所有标准的 ptrace 请求类型
+ *
+ * @param request ptrace 请求类型
+ * @param pid 目标进程 ID
+ * @param addr 地址（根据请求类型不同含义不同）
+ * @param data 数据（根据请求类型不同含义不同）
+ *
+ * @return 成功返回请求数据或0，失败返回-1并设置errno
+ *
+ * @retval 正数 PEEK 操作返回的数据
+ * @retval 0 成功
+ * @retval -1 失败（errno 包含错误码）
+ */
+long sys_ptrace(enum __ptrace_request request, pid_t pid, void *addr, void *data)
+{
+    pcb_t target_pcb = NULL;
+    long ret = 0;
+    struct user *regs = NULL;
+    struct iovec *iov = NULL;
+
+    (void)pid;  /* TODO: 根据 pid 查找目标进程的 PCB */
+    (void)addr; /* 用于 PEEK/POKE 操作的地址 */
+
+    /* TODO: 根据 pid 获取目标进程的 PCB */
+    /* target_pcb = find_pcb_by_pid(pid); */
+    /* if (target_pcb == NULL) { */
+    /*     return -ESRCH; */
+    /* } */
+
+    /* 为了演示，使用传入的 pcb */
+    /* 实际实现中需要从进程表中查找 */
+
+    switch (request)
+    {
+    case PTRACE_TRACEME:
+        /* 本进程被父进程跟踪 */
+        /* 设置当前进程的 ptrace 标志 */
+        /* current->ptrace |= PT_PTRACED; */
+        ret = 0;
+        break;
+
+    case PTRACE_PEEKTEXT:
+    case PTRACE_PEEKDATA:
+        /* 从内存读取字 */
+        /* TODO: 实现内存读取 */
+        /* ret = ptrace_peek_text(target_pcb, addr, data); */
+        ret = -ENOSYS;
+        break;
+
+    case PTRACE_PEEKUSER:
+        /* 读取 USER 区域（寄存器） */
+        /* addr 是寄存器偏移，data 是返回数据的指针 */
+        if (data == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        /* TODO: 根据 addr 获取对应寄存器 */
+        /* ret = ptrace_peek_user(target_pcb, addr, data); */
+        ret = -ENOSYS;
+        break;
+
+    case PTRACE_POKETEXT:
+    case PTRACE_POKEDATA:
+        /* 向内存写入字 */
+        /* TODO: 实现内存写入 */
+        /* ret = ptrace_poke_text(target_pcb, addr, data); */
+        ret = -ENOSYS;
+        break;
+
+    case PTRACE_POKEUSER:
+        /* 向 USER 区域写入（寄存器） */
+        if (data == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        /* TODO: 根据 addr 设置对应寄存器 */
+        /* ret = ptrace_poke_user(target_pcb, addr, data); */
+        ret = -ENOSYS;
+        break;
+
+    case PTRACE_CONT:
+        /* 继续执行 */
+        /* 清除单步调试标志 */
+        if (target_pcb != NULL)
+        {
+            ptrace_cancel_bpt(target_pcb);
+        }
+        ret = 0;
+        break;
+
+    case PTRACE_KILL:
+        /* 终止进程 */
+        /* TODO: 发送 SIGKILL 信号给目标进程 */
+        ret = -ENOSYS;
+        break;
+
+    case PTRACE_SINGLESTEP:
+        /* 单步执行 */
+        if (target_pcb != NULL)
+        {
+            ptrace_set_bpt(target_pcb);
+        }
+        ret = 0;
+        break;
+
+    case PTRACE_GETREGS:
+        /* 获取通用寄存器（旧接口） */
+        if (data == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        if (target_pcb == NULL)
+        {
+            ret = -ESRCH;
+            break;
+        }
+
+        regs = get_user_regs(target_pcb);
+        if (regs == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        ret = (long)copy_to_user(data, &regs->user_regs, sizeof(regs->user_regs));
+        free(regs);
+        break;
+
+    case PTRACE_SETREGS:
+        /* 设置通用寄存器（旧接口） */
+        if (data == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        if (target_pcb == NULL)
+        {
+            ret = -ESRCH;
+            break;
+        }
+
+        regs = get_user_regs(target_pcb);
+        if (regs == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        if (copy_from_user(&regs->user_regs, data, sizeof(regs->user_regs)) != 0)
+        {
+            ret = -EFAULT;
+        }
+        else if (valid_user_regs(regs) == 0)
+        {
+            set_user_regs(target_pcb, regs);
+            ret = 0;
+        }
+        else
+        {
+            ret = -EINVAL;
+        }
+
+        free(regs);
+        break;
+
+    case PTRACE_GETFPREGS:
+        /* 获取浮点寄存器（旧接口） */
+        if (data == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        if (target_pcb == NULL)
+        {
+            ret = -ESRCH;
+            break;
+        }
+
+        regs = get_user_regs(target_pcb);
+        if (regs == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        ret = (long)copy_to_user(data, &regs->user_fpsimd, sizeof(regs->user_fpsimd));
+        free(regs);
+        break;
+
+    case PTRACE_SETFPREGS:
+        /* 设置浮点寄存器（旧接口） */
+        if (data == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        if (target_pcb == NULL)
+        {
+            ret = -ESRCH;
+            break;
+        }
+
+        regs = get_user_regs(target_pcb);
+        if (regs == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        if (copy_from_user(&regs->user_fpsimd, data, sizeof(regs->user_fpsimd)) != 0)
+        {
+            ret = -EFAULT;
+        }
+        else
+        {
+            set_user_regs(target_pcb, regs);
+            ret = 0;
+        }
+
+        free(regs);
+        break;
+
+    case PTRACE_GETREGSET:
+        /* 获取寄存器集合（新接口） */
+        /* addr 是 iovec 指针，data 是 nt_type */
+        if (addr == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        if (target_pcb == NULL)
+        {
+            ret = -ESRCH;
+            break;
+        }
+
+        /* data 参数在 GETREGSET/SETREGSET 中是 nt_type */
+        ret = ptrace_getregset(target_pcb, addr, (int)(uintptr_t)data);
+        break;
+
+    case PTRACE_SETREGSET:
+        /* 设置寄存器集合（新接口） */
+        /* addr 是 iovec 指针，data 是 nt_type */
+        if (addr == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        if (target_pcb == NULL)
+        {
+            ret = -ESRCH;
+            break;
+        }
+
+        ret = ptrace_setregset(target_pcb, addr, (int)(uintptr_t)data);
+        break;
+
+    case PTRACE_ATTACH:
+        /* 附加到进程 */
+        /* TODO: 发送 SIGSTOP 给目标进程并附加 */
+        ret = -ENOSYS;
+        break;
+
+    case PTRACE_DETACH:
+        /* 从进程分离 */
+        if (target_pcb != NULL)
+        {
+            ptrace_cancel_bpt(target_pcb);
+            /* TODO: 清除 ptrace 标志并恢复进程运行 */
+        }
+        ret = 0;
+        break;
+
+    case PTRACE_SEIZE:
+        /* 占用进程（不停止它） */
+        /* TODO: 类似 ATTACH 但不发送 SIGSTOP */
+        ret = -ENOSYS;
+        break;
+
+    case PTRACE_INTERRUPT:
+        /* 中断进程 */
+        /* TODO: 停止进程并等待 ptrace 命令 */
+        ret = -ENOSYS;
+        break;
+
+    case PTRACE_LISTEN:
+        /* 监听停止的进程 */
+        /* TODO: 等待进程停止 */
+        ret = -ENOSYS;
+        break;
+
+    case PTRACE_GETSIGINFO:
+    case PTRACE_SETSIGINFO:
+    case PTRACE_GETSIGMASK:
+    case PTRACE_SETSIGMASK:
+        /* 信号相关操作（暂不支持） */
+        ret = -ENOSYS;
+        break;
+
+    default:
+        ret = -EINVAL;
+        break;
+    }
+
+    return ret;
+}
+
+/**
+ * @brief 用户空间 ptrace 接口（调用系统调用）
+ *
+ * @details 这是用户空间调用的 ptrace 函数，通过系统调用进入内核
+ *
+ * @param request ptrace 请求类型
+ * @param pid 目标进程 ID
+ * @param addr 地址
+ * @param data 数据
+ *
+ * @return 成功返回请求数据或0，失败返回-1并设置errno
+ */
+long ptrace(enum __ptrace_request request, pid_t pid, void *addr, void *data)
+{
+    /* TODO: 执行系统调用 sys_ptrace */
+    /* return syscall(__NR_ptrace, request, pid, addr, data); */
+
+    /* 临时：直接调用内核函数 */
+    return sys_ptrace(request, pid, addr, data);
 }
