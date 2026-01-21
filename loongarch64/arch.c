@@ -39,7 +39,7 @@
  */
 int32_t arch_switch_context_set_stack(T_TBSP_TaskContext *ctx, uint64_t sp)
 {
-    ctx->sp = (int64_t)sp;
+    ctx->sp = sp;
 
     return 0;
 }
@@ -56,7 +56,7 @@ int32_t arch_context_set_return(arch_exception_context_t *context,
                                uint64_t value)
 {
     /* a0是函数返回值寄存器（r4） */
-    context->regs[REG_A0] = (int64_t)value;
+    context->regs[REG_A0] = value;
 
     return 0;
 }
@@ -73,7 +73,7 @@ int32_t arch_context_set_stack(arch_exception_context_t *context,
                               uint64_t value)
 {
     /* sp（r3）寄存器用于堆栈指针 */
-    context->regs[REG_SP] = (int64_t)value;
+    context->regs[REG_SP] = value;
 
     return 0;
 }
@@ -84,24 +84,9 @@ int32_t arch_context_set_stack(arch_exception_context_t *context,
  * @param context 异常上下文指针
  *
  * @return 成功返回0
- *
- * @note 当前实现：返回成功
- * @note 未来扩展：
- *       1. 清零所有寄存器
- *       2. 设置初始堆栈指针
- *       3. 配置初始状态
- *       4. 设置特权级（PLV0/PLV3）
  */
 int32_t arch_context_thread_init(arch_exception_context_t *context)
 {
-    /* 当前实现：返回成功
-     * 未来扩展：
-     * 1. 清零所有寄存器
-     * 2. 设置初始堆栈指针
-     * 3. 配置初始状态
-     * 4. 设置特权级（PLV0/PLV3）
-     */
-
     return 0;
 }
 
@@ -153,7 +138,7 @@ int32_t arch_context_set_args(arch_exception_context_t *context,
 {
     if (index < MAX_REGS)
     {
-        context->regs[index] = (int64_t)value;
+        context->regs[index] = value;
 
         return 0;
     }
