@@ -84,6 +84,7 @@ void early_mmu_init(void)
     kernel_mmu_set_pvoffset(PHYSADDR((&_start)), 0U, (virt_addr_t)(&_start));
 
 }
+
 /**
  * @brief 启动处理器（BSP）架构初始化
  *
@@ -107,6 +108,7 @@ void bp_arch_init(void)
     trap_init();
 
 }
+
 /**
  * @brief 应用处理器（AP）架构初始化
  *
