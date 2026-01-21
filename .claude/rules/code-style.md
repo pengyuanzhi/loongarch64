@@ -84,6 +84,55 @@ if(condition)         /* ❌ 错误 */
 if (condition)        /* ✅ 正确 */
 ```
 
+#### 4.2.1.1 指针声明空格规范
+```c
+/* 指针声明：星号前不加空格，星号后加空格 */
+uint32_t *ptr;        /* ✅ 正确 */
+const char *str;      /* ✅ 正确 */
+void *ctx;            /* ✅ 正确 */
+
+uint32_t* ptr;        /* ❌ 错误：星号前没有空格 */
+uint32_t *ptr;        /* ❌ 错误：星号后没有空格 */
+```
+
+#### 4.2.1.2 return 语句空行规范
+```c
+/* return 语句前必须有空行 */
+int32_t function(void)
+{
+    uint32_t result = calculate();
+
+    return result;    /* ✅ 正确：return前有空行 */
+}
+
+/* ❌ 错误：return前没有空行 */
+int32_t function(void)
+{
+    uint32_t result = calculate();
+    return result;
+}
+```
+
+#### 4.2.1.3 函数参数换行对齐规范
+```c
+/* 函数参数过长需要换行时，对齐到左括号 */
+uint32_t scheduler_task_create(
+    void (*entry)(void),
+    uint8_t priority,
+    uint32_t stack_size
+);                    /* ✅ 正确：参数对齐到左括号 */
+
+/* 多行参数的对齐方式 */
+int32_t arch_context_set_return(arch_exception_context_t *context,
+                                 uint64_t value);        /* ✅ 正确 */
+
+void long_function_name(
+    parameter_type1 param1,
+    parameter_type2 param2,
+    parameter_type3 param3
+);                                              /* ✅ 正确 */
+```
+
 #### 4.2.2 大括号规范（Allman风格）
 ```c
 /* Allman风格：左大括号必须换行 */
