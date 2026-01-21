@@ -1,0 +1,53 @@
+#define ASM_USE
+#include <cpu.h>
+#include <context.h>
+#include <asm-offsets.h>
+#include <asm.h>
+#include <system/const.h>
+
+.global restore_context
+restore_context:
+    ld.d    t0,a0,PT_CRMD
+    csrwr   t0,LOONGARCH_CSR_CRMD
+    ld.d    t0,a0,PT_PRMD
+    csrwr   t0,LOONGARCH_CSR_PRMD
+    ld.d    t0,a0,PT_EUEN
+    csrwr   t0,LOONGARCH_CSR_EUEN
+    ld.d    t0,a0,PT_ECFG
+    csrwr   t0,LOONGARCH_CSR_ECFG
+    ld.d    t0,a0,PT_ESTAT
+    csrwr   t0,LOONGARCH_CSR_ESTAT
+    ld.d    t0,a0,PT_ERA
+    csrwr   t0,LOONGARCH_CSR_ERA
+    ld.d    t0,a0,PT_BVADDR
+    csrwr   t0,LOONGARCH_CSR_BADV
+    ld.d    ra,a0,PT_R1
+    ld.d    sp,a0,PT_R3
+    ld.d    a1,a0,PT_R5
+    ld.d    a2,a0,PT_R6
+    ld.d    a3,a0,PT_R7
+    ld.d    a4,a0,PT_R8
+    ld.d    a5,a0,PT_R9
+    ld.d    a6,a0,PT_R10
+    ld.d    a7,a0,PT_R11
+    ld.d    t0,a0,PT_R12
+    ld.d    t1,a0,PT_R13
+    ld.d    t2,a0,PT_R14
+    ld.d    t3,a0,PT_R15
+    ld.d    t4,a0,PT_R16
+    ld.d    t5,a0,PT_R17
+    ld.d    t6,a0,PT_R18
+    ld.d    t7,a0,PT_R19
+    ld.d    t8,a0,PT_R20
+    ld.d    fp,a0,PT_R22
+    ld.d    s0,a0,PT_R23
+    ld.d    s1,a0,PT_R24
+    ld.d    s2,a0,PT_R25
+    ld.d    s3,a0,PT_R26
+    ld.d    s4,a0,PT_R27
+    ld.d    s5,a0,PT_R28
+    ld.d    s6,a0,PT_R29
+    ld.d    s7,a0,PT_R30
+    ld.d    s8,a0,PT_R31
+    ld.d    a0,a0,PT_R4
+    ertn

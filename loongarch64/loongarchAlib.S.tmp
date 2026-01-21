@@ -1,0 +1,99 @@
+#define ASM_USE
+#include <cpu.h>
+#include <asm.h>
+
+ENTRY(LOONGSON3A_HT_CFG_LW32)
+    li.d    t0,0x80000EFDFB000000
+    or      t0,t0,a0
+    ld.w    a0,t0,0
+    dbar    0
+    jirl    zero,ra,0
+ENDPROC(LOONGSON3A_HT_CFG_LW32)
+
+ENTRY(LOONGSON3A_HT_CFG_SW32)
+    li.d    t0,0x80000EFDFB000000
+    or      t0,t0,a0
+    st.w    a1,t0,0
+    dbar    0
+    jirl    zero,ra,0
+ENDPROC(LOONGSON3A_HT_CFG_SW32)
+
+ENTRY(LOONGARCH_SB64_REGS)
+    li.d    t0,0x800000001fe00000
+    or      t0,t0,a0
+    st.b    a1,t0,0
+    dbar    0
+    jirl    zero,ra,0
+ENDPROC(LOONGARCH_SB64_REGS)
+
+ENTRY(LOONGARCH_LB64_REGS)
+    li.d    t0,0x800000001fe00000
+    or      t0,t0,a0
+    ld.b    a0,t0,0
+    dbar    0
+    jirl    zero,ra,0
+ENDPROC(LOONGARCH_LB64_REGS)
+
+ENTRY(LOONGARCH_SW32_REGS)
+    li.d    t0,0x800000001fe00000
+    or      t0,t0,a0
+    st.w    a1,t0,0
+    dbar    0
+    jirl    zero,ra,0
+ENDPROC(LOONGARCH_SW32_REGS)
+
+ENTRY(LOONGARCH_LW32_REGS)
+    li.d    t0,0x800000001fe00000
+    or      t0,t0,a0
+    ld.w    a0,t0,0
+    dbar    0
+    jirl    zero,ra,0
+ENDPROC(LOONGARCH_LW32_REGS)
+
+ENTRY(LOONGARCH_LW64_TYPE)
+    li.d    t0,0x80000EFE00000000
+    or      t0,t0,a0
+    ld.w    a0,t0,0
+    dbar    0
+    jirl    zero,ra,0
+ENDPROC(LOONGARCH_LW64_TYPE)
+
+ENTRY(LOONGARCH_SW32_TYPE)
+    li.d    t0,0x80000EFE00000000
+    or      t0,t0,a0
+    st.w    a1,t0,0
+    dbar    0
+    jirl    zero,ra,0
+ENDPROC(LOONGARCH_LW64_TYPE)
+
+ENTRY(LOONGARCH_SB64)
+    li.d    t0,0x8000000000000000
+    or      t0,t0,a0
+    st.b    a1,t0,0
+    dbar    0
+    jirl    zero,ra,0
+ENDPROC(LOONGARCH_SB64)
+
+ENTRY(LOONGARCH_SW64)
+    li.d    t0,0x8000000000000000
+    or      t0,t0,a0
+    st.w    a1,t0,0
+    dbar    0
+    jirl    zero,ra,0
+ENDPROC(LOONGARCH_SW64)
+
+ENTRY(LOONGARCH_LB64)
+    li.d    t0,0x8000000000000000
+    or      t0,t0,a0
+    ld.b    a0,t0,0
+    dbar    0
+    jirl    zero,ra,0
+ENDPROC(LOONGARCH_LB64)
+
+ENTRY(LOONGARCH_LW64)
+    li.d    t0,0x8000000000000000
+    or      t0,t0,a0
+    ld.w    a0,t0,0
+    dbar    0
+    jirl    zero,ra,0
+ENDPROC(LOONGARCH_LW64)

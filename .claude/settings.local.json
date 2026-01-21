@@ -1,0 +1,57 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(tree:*)",
+      "Bash(./scripts/git_push.sh:*)",
+      "Bash(dir:*)",
+      "Bash(find:*)",
+      "Bash(for:*)",
+      "Bash(do if [ -f \"$f\" ])",
+      "Bash(fi:*)",
+      "Bash(python:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(./scripts/smart_commit.sh:*)",
+      "Bash(bash scripts/smart_commit.sh:*)",
+      "Bash(ls:*)",
+      "Bash(done:*)",
+      "Bash(do sed:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(ex +\"%s/\\\\\\(^\\\\s*\\\\}\\\\\\)\\\\_s*/\\\\1/|wq\" arch_uaccess.c cpu_info.c exception.c mmu.c)",
+      "Bash(done)",
+      "Bash(git checkout:*)",
+      "Bash(powershell:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "python .claude/hooks/session_start.py"
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "type": "command",
+        "command": "python .claude/hooks/user_prompt_submit.py"
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python .claude/hooks/stop.py"
+      }
+    ],
+    "SessionEnd": [
+      {
+        "type": "command",
+        "command": "python .claude/hooks/session_end.py"
+      }
+    ]
+  }
+}

@@ -1,0 +1,80 @@
+
+config SMP
+	bool "smp"
+	default y
+	
+config PGTABLE_LEVELS
+	int "page table levels"
+	default 4
+
+config PAGE_SIZE_4KB
+	bool "page size"
+	default y
+	
+config MAX_CPUS
+	int "support cpu max numbers"
+	default 4
+	depends on SMP
+	---help---
+    config support cpu numbers
+
+config L1_CACHE_SHIFT
+	int
+	default "6"	
+
+config CPU_HAS_FPU
+	bool
+	default y
+
+config AS_HAS_LSX_EXTENSION
+	def_bool $$(as-instr,vld \$$vr0$$(comma)\$$a0$$(comma)0)
+
+config AS_HAS_LASX_EXTENSION
+	def_bool $$(as-instr,xvld \$$xr0$$(comma)\$$a0$$(comma)0)
+
+config AS_HAS_LBT_EXTENSION
+	def_bool $$(as-instr,movscr2gr \$$a0$$(comma)\$$scr0)
+
+config AS_HAS_LVZ_EXTENSION
+	def_bool $$(as-instr,hvcl 0)
+	
+config CPU_HAS_LSX
+	bool "Support for the Loongson SIMD Extension"
+	depends on AS_HAS_LSX_EXTENSION
+	help
+	  Loongson SIMD Extension (LSX) introduces 128 bit wide vector registers
+	  and a set of SIMD instructions to operate on them. When this option
+	  is enabled the kernel will support allocating & switching LSX
+	  vector register contexts. If you know that your kernel will only be
+	  running on CPUs which do not support LSX or that your userland will
+	  not be making use of it then you may wish to say N here to reduce
+	  the size & complexity of your kernel.
+
+	  If unsure, say Y.
+
+config CPU_HAS_LASX
+	bool "Support for the Loongson Advanced SIMD Extension"
+	depends on CPU_HAS_LSX
+	depends on AS_HAS_LASX_EXTENSION
+	help
+	  Loongson Advanced SIMD Extension (LASX) introduces 256 bit wide vector
+	  registers and a set of SIMD instructions to operate on them. When this
+	  option is enabled the kernel will support allocating & switching LASX
+	  vector register contexts. If you know that your kernel will only be
+	  running on CPUs which do not support LASX or that your userland will
+	  not be making use of it then you may wish to say N here to reduce
+	  the size & complexity of your kernel.
+
+	  If unsure, say Y.
+
+config CPU_HAS_LBT
+	bool "Support for the Loongson Binary Translation Extension"
+	default n
+	help
+	  Loongson Binary Translation (LBT) introduces 4 scratch registers (SCR0
+	  to SCR3), x86/ARM eflags (eflags) and x87 fpu stack pointer (ftop).
+	  Enabling this option allows the kernel to allocate and switch registers
+	  specific to LBT.
+
+	  If you want to use this feature, such as the Loongson Architecture
+	  Translator (LAT), say Y.	
