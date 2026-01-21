@@ -24,9 +24,8 @@
 /*************************** 宏定义 *****************************/
 
 #define REG_A0          4U   /* 参数寄存器0 / 返回值寄存器0 */
-#define REG_A1          5U   /* 参数寄存器1 / 返回值寄存器1 */
 #define REG_SP          3U   /* 堆栈指针寄存器 */
-#define MAX_ARG_REGS    8U   /* a0-a7，共8个参数寄存器 */
+#define MAX_REGS        32U  /* r0-r31，共32个通用寄存器 */
 
 /*************************** 函数实现 ****************************/
 
@@ -107,52 +106,57 @@ int32_t arch_context_thread_init(arch_exception_context_t *context)
 }
 
 /**
- * @brief 获取函数参数
+ * @brief 获取寄存器值
  *
- * @details 从异常上下文中获取函数参数
+ * @details 从异常上下文中获取指定寄存器的值
  *
  * @param context 异常上下文指针
- * @param index   参数索引（0-7，对应a0-a7）
- * @param value   输出参数，用于存储获取的参数值
+ * @param index   寄存器索引（0-31，对应r0-r31）
  *
- * @return 成功返回0
+ * @return 成功返回寄存器值，失败返回-1
  *
- * @note LoongArch64调用约定：
- *       - a0-a7 (r4-r11): 函数参数寄存器
- *       - a0 (r4): 函数返回值寄存器
+ * @note LoongArch64通用寄存器：
+ *       - r0: 零寄存器（硬编码为0）
+ *       - r1: 保留
+ *       - r2-r3: 栈指针和全局指针
+ *       - r4-r11: 参数寄存器和返回值（a0-a7）
+ *       - r12-r20: 临时寄存器（t0-t8）
+ *       - r21-r31: 保存寄存器（s0-s8）和特殊寄存器
  */
-int32_t arch_context_get_args(const arch_exception_context_t *context,
-                               uint32_t index,
-                               uint64_t *value)
+int64_t arch_context_get_args(arch_exception_context_t *context,
+                               uint32_t index)
 {
-    /* index=0 -> a0寄存器（r4）
-     * index=1 -> a1寄存器（r5）
-     * ...
-     * index=7 -> a7寄存器（r11）
-     */
-    *value = (uint64_t)context->regs[REG_A0 + index];
+    if (index < MAX_REGS)
+    {
+        return context->regs[index];
+    }
 
-    return 0;
+    return -1;
 }
 
 /**
- * @brief 设置函数参数
+ * @brief 设置寄存器值
  *
- * @details 设置异常上下文中的函数参数
+ * @details 设置异常上下文中的指定寄存器值
  *
  * @param context 异常上下文指针
- * @param index   参数索引（0-7，对应a0-a7）
- * @param value   要设置的参数值
+ * @param index   寄存器索引（0-31，对应r0-r31）
+ * @param value   要设置的寄存器值
  *
- * @return 成功返回0
+ * @return 成功返回0，失败返回-1
  *
- * @note 用于系统调用或信号处理时设置参数
+ * @note 用于系统调用或信号处理时设置寄存器值
  */
 int32_t arch_context_set_args(arch_exception_context_t *context,
                                uint32_t index,
                                uint64_t value)
 {
-    context->regs[REG_A0 + index] = (int64_t)value;
+    if (index < MAX_REGS)
+    {
+        context->regs[index] = (int64_t)value;
 
-    return 0;
+        return 0;
+    }
+
+    return -1;
 }
