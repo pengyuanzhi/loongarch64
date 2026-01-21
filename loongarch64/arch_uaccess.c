@@ -34,7 +34,7 @@
 /************************类型定义******************************/
 /************************外部声明******************************/
 /************************前向声明******************************/
-static uint64_t search_pgtable(virt_addr_t v_addr,phys_addr_t mmu_base);
+static uint64_t search_pgtable(virt_addr_t v_addr, phys_addr_t mmu_base);
 static uint64_t page_entry_get(phys_addr_t pte, int level, int idx);
 static bool is_page_dir(uint64_t ptable_entry);
 /************************模块变量******************************/
@@ -50,7 +50,7 @@ static bool is_page_dir(uint64_t ptable_entry);
  *   true 检查成功
  *   false 检查失败
  */
-bool user_access_check (const void __user *user_addr, unsigned long n, int flag)
+bool user_access_check(const void __user *user_addr, unsigned long n, int flag)
 {
     void         *addr_end;
     const void   *addr_start = user_addr;
@@ -110,7 +110,7 @@ bool user_access_check (const void __user *user_addr, unsigned long n, int flag)
  *   true 检查成功
  *   false 检查失败
  */
-bool kernel_access_check (const void *kernel_addr, unsigned long n, int flag)
+bool kernel_access_check(const void *kernel_addr, unsigned long n, int flag)
 {
     unsigned long mmu_check_start;
     unsigned long mmu_check_size;
@@ -152,7 +152,7 @@ bool kernel_access_check (const void *kernel_addr, unsigned long n, int flag)
     uint64_t * table = (uint64_t *)fix_map_set(FIX_MAP_PTABLE(level), pte, MT_KERNEL_MEM);
     value = table[idx];
     return value;
-}static uint64_t search_pgtable(virt_addr_t v_addr,phys_addr_t mmu_base)
+}static uint64_t search_pgtable(virt_addr_t v_addr, phys_addr_t mmu_base)
 {
     phys_addr_t pte = mmu_base;
     uint64_t value;

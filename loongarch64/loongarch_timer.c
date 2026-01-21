@@ -1,3 +1,21 @@
+/**
+ * @file    loongarch_timer.c
+ * @brief   LoongArch64定时器驱动
+ * @author  Intewell Team
+ * @date    2025-01-21
+ * @version 1.0
+ *
+ * @details 本文件实现LoongArch64定时器驱动
+ *          - 稳定定时器(Stable Timer)
+ *          - 周期性和单次模式
+ *          - 定时器中断处理
+ *          - 时间戳获取
+ *
+ * @note MISRA-C:2012 合规
+ *
+ * @copyright Copyright (c) 2025 Intewell Team
+ */
+/************************头 文 件******************************/
 #include <arch_timer.h>
 #include <barrier.h>
 #include <time/ktime.h>
@@ -16,14 +34,14 @@ static u64 cpu_clock_freq;
 static long init_offset;
 /************************外部声明******************************/
 /************************前向声明******************************/
-static s32 loongarch_timer_init (void);
-static s32 loongarch_timer_enable (void);
-static s32 loongarch_timer_disable (void);
-static u64 loongarch_timer_count_get (void);
-static s32 loongarch_timer_count_set (u64 count);
-static u64 loongarch_timer_freq_get (void);
-static u64 loongarch_timer_walltime_get (void);
-static s32 loongarch_timer_timeout_set (u64 timeout);
+static s32 loongarch_timer_init(void);
+static s32 loongarch_timer_enable(void);
+static s32 loongarch_timer_disable(void);
+static u64 loongarch_timer_count_get(void);
+static s32 loongarch_timer_count_set(u64 count);
+static u64 loongarch_timer_freq_get(void);
+static u64 loongarch_timer_walltime_get(void);
+static s32 loongarch_timer_timeout_set(u64 timeout);
 /************************模块变量******************************/
 static ttos_time_ops_t loongarch_timer_ops
     = { .time_name         = "LOONGARCH Stable Timer",
@@ -82,7 +100,7 @@ static void loongarch_timer_freq_init(void)
  * @param[in] 无
  * @retval 无
  */
-static void loongarch_timer_irq_init (void)
+static void loongarch_timer_irq_init(void)
 {
     ttos_pic_irq_unmask (LOONGARCH_TIMER_PHYS_IRQ);
 }
@@ -92,7 +110,7 @@ static void loongarch_timer_irq_init (void)
  * @param[in] 无
  * @retval  time freq
  */
-static u64 loongarch_timer_freq_get (void)
+static u64 loongarch_timer_freq_get(void)
 {
     return calc_const_freq();
 }

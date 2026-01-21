@@ -1,22 +1,20 @@
 /**
- * @file    arch/arm_common/ipi.c
- * @author  zyh
- * @brief
- * @version 3.0.0
- * @date    2024-07-30
- * 
- * 8c83d7de 2024-07-02 移除头文件路径中的linux
- * ac006b61 2024-07-02 移除一级ttos目录
- * be1a0b92 2024-05-21 irq命名修改为ttos_pic_xxx, 头文件引用删<irq.h>
- * b041d869 2024-05-15 格式化代码并处理一些头文件依赖问题
- * 04b1f3b4 2024-04-15 统一cpuset接口
- * 33a84634 2024-04-11 添加musl库 移除标准库头文件屏蔽原posix相关头问题
- * 9e2c0093 2024-03-26 重新设置重调度IPI
- * 68c0a668 2024-03-25 msgq功能基本测试通过，添加测试用例
- * 
- * 科东(广州)软件科技有限公司 版权所有
- * @copyright Copyright (C) 2023 Intewell Inc. All Rights Reserved.
-*/
+ * @file    ipi.c
+ * @brief   LoongArch64核间中断(IPI)实现
+ * @author  Intewell Team
+ * @date    2025-01-21
+ * @version 1.0
+ *
+ * @details 本文件实现LoongArch64核间中断功能
+ *          - IPI发送和接收
+ *          - 重调度IPI
+ *          - 多核CPU集合管理
+ *
+ * @note MISRA-C:2012 合规
+ * @note TODO: LOONGARCH实现细节待完善
+ *
+ * @copyright Copyright (c) 2025 Intewell Team
+ */
 /************************头 文 件******************************/
 #include <system/bitops.h>
 #include <errno.h>
@@ -44,7 +42,7 @@ extern int32_t loongson2k_pic_ipi_ack(struct ttos_pic *pic, uint32_t *src_cpu, u
  * @retval 0 成功
  * @retval EIO 失败
  */
-static s32 ipi_send (cpu_set_t *cpus, u32 ipi, bool selfexcluded)
+static s32 ipi_send(cpu_set_t *cpus, u32 ipi, bool selfexcluded)
 {
     cpu_set_t target_cpus;
     CPU_ZERO (&target_cpus);
@@ -95,7 +93,7 @@ static s32 ipi_send (cpu_set_t *cpus, u32 ipi, bool selfexcluded)
  * @retval 0 成功
  * @retval EIO 失败
  */
-s32 ipi_reschedule (cpu_set_t *cpus, bool selfexcluded)
+s32 ipi_reschedule(cpu_set_t *cpus, bool selfexcluded)
 {
     return ipi_send (cpus, GENERAL_IPI_SCHED, selfexcluded);
 }

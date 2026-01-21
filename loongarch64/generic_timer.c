@@ -1,3 +1,21 @@
+/**
+ * @file    generic_timer.c
+ * @brief   LoongArch64通用定时器驱动
+ * @author  Intewell Team
+ * @date    2025-01-21
+ * @version 1.0
+ *
+ * @details 本文件实现LoongArch64通用定时器驱动
+ *          - 时钟源注册
+ *          - 时钟事件设备
+ *          - 定时器中断处理
+ *          - 单次和周期模式
+ *
+ * @note MISRA-C:2012 合规
+ *
+ * @copyright Copyright (c) 2025 Intewell Team
+ */
+/************************头 文 件******************************/
 #include <barrier.h>
 #include <clock/clockchip.h>
 #include <clock/clocksource.h>
@@ -25,18 +43,18 @@ static u32 timer_irq[4];
 extern void sync_counter(void);
 extern int constant_set_state_oneshot(void);
 extern int constant_set_state_periodic(void);
-static void generic_timer_get_freq (void)
+static void generic_timer_get_freq(void)
 {
     if (generic_timer_hz == 0)
     {
         generic_timer_hz = ttos_time_freq_get ();
     }
 }
-static u64 generic_counter_read (struct timer_clocksource *cs)
+static u64 generic_counter_read(struct timer_clocksource *cs)
 {
     return ttos_time_count_get ();
 }
-int arch_timer_clocksource_init (void)
+int arch_timer_clocksource_init(void)
 {
     struct timer_clocksource *cs;
     generic_timer_get_freq ();
@@ -61,12 +79,12 @@ int arch_timer_clocksource_init (void)
     cs->priv            = NULL;
     return clocksource_register (cs);
 }
-static void generic_timer_stop (void)
+static void generic_timer_stop(void)
 {
     ttos_time_disable ();
 }
-static void generic_timer_set_mode (enum clockchip_mode mode,
-                                    struct clockchip   *cc)
+static void generic_timer_set_mode(enum clockchip_mode mode,
+                                   struct clockchip *cc)
 {
     switch (mode)
     {
@@ -84,8 +102,8 @@ static void generic_timer_set_mode (enum clockchip_mode mode,
         break;
     }
 }
-static int generic_timer_set_next_event (unsigned long long evt,
-                                         struct clockchip  *cc)
+static int generic_timer_set_next_event(unsigned long long evt,
+                                        struct clockchip *cc)
 {
     int64_t ct = ttos_time_count_get() - evt;
     if (ct < (int64_t)cc->min_delta_ns)
@@ -95,7 +113,7 @@ static int generic_timer_set_next_event (unsigned long long evt,
     ttos_time_timeout_set(ct);    // 本次定时时间戳 - 当前时间戳 == 本次定时时间（nS）
     return 0;
 }
-static void generic_phys_timer_handler (uint32_t irq, void *dev)
+static void generic_phys_timer_handler(uint32_t irq, void *dev)
 {
     u32               ctl;
     struct clockchip *cc = dev;

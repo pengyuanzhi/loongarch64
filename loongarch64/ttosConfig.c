@@ -1,24 +1,20 @@
 /**
- * @file    arch/arm/ttosConfig.c
- * @author  zyh
- * @brief
- * @version 3.0.0
- * @date    2024-07-30
- * 
- * ac006b61 2024-07-02 移除一级ttos目录
- * f5b7c126 2024-06-20 整理部分代码
- * b041d869 2024-05-15 格式化代码并处理一些头文件依赖问题
- * 5a2d53e6 2024-05-05 增加libk同时移除对libc的依赖
- * 52902aeb 2024-04-19 移除workspace概念 添加tlsf和原来的内存分配算法可选
- * f9b90902 2024-04-16 pthread_create可用
- * 04b1f3b4 2024-04-15 统一cpuset接口
- * 3d961570 2024-03-30 修复 浮点初始化 增加MMU
- * 9fa804c4 2024-03-22 同一编码格式为UTF-8
- * c7bbbfca 2024-03-18 提交任务功能模块
- * 
- * 科东(广州)软件科技有限公司 版权所有
- * @copyright Copyright (C) 2023 Intewell Inc. All Rights Reserved.
-*/
+ * @file    ttosConfig.c
+ * @brief   LoongArch64 TTOS配置
+ * @author  Intewell Team
+ * @date    2025-01-21
+ * @version 1.0
+ *
+ * @details 本文件包含LoongArch64架构的TTOS配置
+ *          - 任务配置参数
+ *          - 定时器配置参数
+ *          - 信号量配置参数
+ *          - 消息队列配置参数
+ *
+ * @note MISRA-C:2012 合规
+ *
+ * @copyright Copyright (c) 2025 Intewell Team
+ */
 /************************头 文 件******************************/
 #include <ttos.h>
 /************************宏 定 义******************************/

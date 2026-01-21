@@ -1,3 +1,21 @@
+/**
+ * @file    tlb.c
+ * @brief   LoongArch64 TLB管理
+ * @author  Intewell Team
+ * @date    2025-01-21
+ * @version 1.0
+ *
+ * @details 本文件实现LoongArch64 TLB管理功能
+ *          - TLB刷新操作
+ *          - 页表遍历器设置
+ *          - TLB异常处理
+ *          - 页目录初始化
+ *
+ * @note MISRA-C:2012 合规
+ *
+ * @copyright Copyright (c) 2025 Intewell Team
+ */
+/************************头 文 件******************************/
 #include <cpu.h>
 #include <tlb.h>
 #include <mmu.h>

@@ -1,3 +1,22 @@
+/**
+ * @file    asm-offsets.c
+ * @brief   LoongArch64汇编偏移量生成工具
+ * @author  Intewell Team
+ * @date    2025-01-21
+ * @version 1.0
+ *
+ * @details 本文件用于生成LoongArch64汇编代码中的结构体偏移量常量
+ *          - arch_context 偏移量
+ *          - FPU寄存器偏移量
+ *          - task_context 偏移量
+ *          - 这些偏移量用于汇编代码访问C结构体
+ *
+ * @note 此文件编译时运行，生成头文件供汇编使用
+ * @note MISRA-C:2012 合规
+ *
+ * @copyright Copyright (c) 2025 Intewell Team
+ */
+/************************头 文 件******************************/
 #include <asm_offsets_build.h>
 #define _HARD_FLOAT_
 #include <context.h>

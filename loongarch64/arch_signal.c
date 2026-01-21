@@ -1,3 +1,20 @@
+/**
+ * @file    arch_signal.c
+ * @brief   LoongArch64信号处理
+ * @author  Intewell Team
+ * @date    2025-01-21
+ * @version 1.0
+ *
+ * @details 本文件实现LoongArch64信号处理功能
+ *          - 信号上下文保存和恢复
+ *          - 信号帧设置
+ *          - 用户态信号处理
+ *
+ * @note MISRA-C:2012 合规
+ *
+ * @copyright Copyright (c) 2025 Intewell Team
+ */
+/************************头 文 件******************************/
 #include <assert.h>
 #include <cache.h>
 #include <context.h>

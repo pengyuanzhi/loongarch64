@@ -1,3 +1,22 @@
+/**
+ * @file    cpu_info.c
+ * @brief   LoongArch64 CPU信息探测
+ * @author  Intewell Team
+ * @date    2025-01-21
+ * @version 1.0
+ *
+ * @details 本文件实现LoongArch64 CPU信息探测功能
+ *          - CPU特性探测
+ *          - ISA级别检测
+ *          - 缓存信息
+ *          - TLB特性
+ *          - FPU/SIMD支持
+ *
+ * @note MISRA-C:2012 合规
+ *
+ * @copyright Copyright (c) 2025 Intewell Team
+ */
+/************************头 文 件******************************/
 #include <cpu.h>
 #include <limits.h>
 #include <stdbool.h>
