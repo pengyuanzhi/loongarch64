@@ -1,0 +1,54 @@
+# 编译产物
+*.o
+*.obj
+*.elf
+*.bin
+*.hex
+*.map
+*.dis
+*.a
+*.lib
+*.so
+*.dll
+*.exe
+
+# 临时文件和备份文件
+*.tmp
+*.bak
+*.broken
+*~
+*.swp
+*.swo
+
+# 编辑器和IDE文件
+.vscode/
+.idea/
+*.sublime-*
+.DS_Store
+Thumbs.db
+
+# 调试文件
+*.d
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# 日志文件
+*.log
+
+# CMake生成文件
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+cmake/
+build/
+out/
+
+# 测试覆盖率
+*.gcda
+*.gcno
+coverage/
+coverage.info
+coverage_html/
