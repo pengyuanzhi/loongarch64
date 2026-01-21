@@ -14,7 +14,7 @@
  *
  * @copyright Copyright (c) 2025 Intewell Team
  */
-/************************头 文 件******************************/
+/*************************** 头文件包含 ****************************/
 #include <cpu.h>
 #include <mmu.h>
 #include <system/const.h>
@@ -24,11 +24,13 @@
 #include <ttosMM.h>
 #include <adrspace.h>
 #include <percpu.h>
-/************************外部变量******************************/
+/*************************** 外部变量声明 ****************************/
+
 extern long long _start;                 /**< 内核起始地址 */
 extern int __image_start__;              /**< 镜像起始地址 */
 extern int __end__;                      /**< 镜像结束地址 */
-/************************外部函数声明******************************/
+
+/*************************** 外部函数声明 ****************************/
 /**
  * @brief 异常处理初始化
  */
@@ -40,12 +42,14 @@ extern void cpu_probe(void);
 /**
  * @brief 断点异常初始化
  */
-void bp_exception_init(void);
+extern void bp_exception_init(void);
+
 /**
  * @brief 应用处理器异常初始化
  */
-void ap_exception_init(void);
-/************************内部函数声明******************************/
+extern void ap_exception_init(void);
+
+/*************************** 内部函数声明 ****************************/
 /**
  * @brief 设置内核MMU物理偏移
  *
@@ -61,8 +65,9 @@ void trap_init(void);
 /**
  * @brief 初始化应用处理器
  */
-void loongson_init_secondary(void);
-/************************函数实现******************************/
+extern void loongson_init_secondary(void);
+
+/*************************** 函数实现 ****************************/
 /**
  * @brief 早期MMU初始化
  *
@@ -77,6 +82,7 @@ void loongson_init_secondary(void);
 void early_mmu_init(void)
 {
     kernel_mmu_set_pvoffset(PHYSADDR((&_start)), 0U, (virt_addr_t)(&_start));
+
 }
 /**
  * @brief 启动处理器（BSP）架构初始化
@@ -99,6 +105,7 @@ void bp_arch_init(void)
     exception_init();
     early_mmu_init();
     trap_init();
+
 }
 /**
  * @brief 应用处理器（AP）架构初始化
@@ -119,4 +126,5 @@ void ap_arch_init(void)
     cpu_probe();
     exception_init();
     loongson_init_secondary();
+
 }
