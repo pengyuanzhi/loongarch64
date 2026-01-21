@@ -1,11 +1,11 @@
 /**
  * @file    arch.c
- * @brief   LoongArch64架构上下文管理实现
+ * @brief   LoongArch64架构上下文操作函数
  * @author  Intewell Team
  * @date    2025-01-21
  * @version 1.0
  *
- * @details 本文件实现了LoongArch64架构上下文管理相关功能
+ * @details 本文件实现了LoongArch64架构上下文操作相关函数
  *          - 任务上下文堆栈指针设置
  *          - 异常上下文返回值设置
  *          - 异常上下文堆栈指针设置
