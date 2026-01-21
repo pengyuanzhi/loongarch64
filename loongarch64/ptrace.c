@@ -533,6 +533,291 @@ static unsigned long copy_from_user(void *to, const void *from, unsigned long n)
     return 0;
 }
 
+/*************************** 进程查找辅助函数 ****************************/
+
+/**
+ * @brief 根据 PID 查找进程控制块
+ *
+ * @details 从进程表中查找指定 PID 的 PCB
+ *
+ * @param pid 进程 ID
+ *
+ * @return 成功返回 PCB 指针，失败返回 NULL
+ *
+ * @note TODO: 需要连接到实际的任务管理系统
+ */
+static pcb_t find_pcb_by_pid(pid_t pid)
+{
+    /* TODO: 实际实现需要从任务管理系统中查找 */
+    /*
+     * 参考实现伪代码：
+     *
+     * if (pid == 0) {
+     *     return current_pcb;  // 当前进程
+     * }
+     *
+     * struct task_struct *task = find_task_by_vpid(pid);
+     * if (task == NULL) {
+     *     return NULL;
+     * }
+     *
+     * return task->pcb;
+     */
+
+    (void)pid;
+    return NULL; /* 临时返回 NULL，实际使用时需要实现 */
+}
+
+/**
+ * @brief 获取当前进程的 PCB
+ *
+ * @return 返回当前进程的 PCB 指针
+ *
+ * @note TODO: 需要连接到实际的任务管理系统
+ */
+static pcb_t get_current_pcb(void)
+{
+    /* TODO: 实际实现需要从任务管理系统中获取当前进程 */
+    /*
+     * 参考实现伪代码：
+     *
+     * TASK_ID tid = ttosGetRunningTask();
+     * return get_pcb_by_task_id(tid);
+     */
+
+    return NULL; /* 临时返回 NULL，实际使用时需要实现 */
+}
+
+/*************************** 内存访问辅助函数 ****************************/
+
+/**
+ * @brief 从目标进程内存读取数据
+ *
+ * @details 从指定进程的虚拟地址空间读取数据
+ *
+ * @param pcb 目标进程 PCB
+ * @param addr 目标虚拟地址
+ * @param data 存储读取数据的缓冲区
+ * @param size 读取字节数
+ *
+ * @return 成功返回0，失败返回负错误码
+ */
+static int ptrace_read_mem(pcb_t pcb, void *addr, void *data, size_t size)
+{
+    if ((pcb == NULL) || (addr == NULL) || (data == NULL))
+    {
+        return -EINVAL;
+    }
+
+    /* TODO: 实现跨进程内存读取 */
+    /*
+     * 参考实现伪代码：
+     *
+     * 1. 检查目标地址是否在用户空间
+     * 2. 切换到目标进程的地址空间
+     * 3. 执行内存读取
+     * 4. 恢复当前进程的地址空间
+     *
+     * if (!access_ok(VERIFY_READ, addr, size)) {
+     *     return -EFAULT;
+     * }
+     *
+     * old_mm = current->mm;
+     * current->mm = pcb->mm;
+     * barrier();
+     *
+     * ret = copy_from_user_kernel(data, addr, size);
+     *
+     * current->mm = old_mm;
+     * barrier();
+     */
+
+    (void)pcb;
+    (void)size;
+    return -ENOSYS; /* 暂不支持 */
+}
+
+/**
+ * @brief 向目标进程内存写入数据
+ *
+ * @details 向指定进程的虚拟地址空间写入数据
+ *
+ * @param pcb 目标进程 PCB
+ * @param addr 目标虚拟地址
+ * @param data 要写入的数据
+ * @param size 写入字节数
+ *
+ * @return 成功返回0，失败返回负错误码
+ */
+static int ptrace_write_mem(pcb_t pcb, void *addr, const void *data, size_t size)
+{
+    if ((pcb == NULL) || (addr == NULL) || (data == NULL))
+    {
+        return -EINVAL;
+    }
+
+    /* TODO: 实现跨进程内存写入 */
+    /* 参考实现同 ptrace_read_mem */
+
+    (void)pcb;
+    (void)addr;
+    (void)data;
+    (void)size;
+    return -ENOSYS; /* 暂不支持 */
+}
+
+/*************************** PEEKUSER/POKEUSER 辅助函数 ****************************/
+
+/**
+ * @brief 根据 offset 获取寄存器值
+ *
+ * @details 按照 Linux PTRACE_PEEKUSER 的偏移量约定获取寄存器值
+ *
+ * @param regs 用户寄存器结构
+ * @param offset 偏移量（以字节为单位）
+ * @param data 存储返回值
+ *
+ * @return 成功返回0，失败返回负错误码
+ */
+static int ptrace_peek_user(struct user *regs, unsigned int offset, unsigned long *data)
+{
+    if ((regs == NULL) || (data == NULL))
+    {
+        return -EINVAL;
+    }
+
+    /* 偏移量到寄存器的映射 */
+    /* 基于 struct user_regs_struct 的布局 */
+    if (offset < (LOONGARCH64_NUM_REGS * sizeof(uint64_t)))
+    {
+        /* 通用寄存器 r0-r31 */
+        int reg_index = (int)(offset / sizeof(uint64_t));
+        if (reg_index < LOONGARCH64_NUM_REGS)
+        {
+            *data = regs->user_regs.regs[reg_index];
+            return 0;
+        }
+    }
+    else if (offset == (LOONGARCH64_pc * sizeof(uint64_t)))
+    {
+        /* PC (csr_era) */
+        *data = regs->user_regs.csr_era;
+        return 0;
+    }
+    else if (offset == (LOONGARCH64_badvaddr * sizeof(uint64_t)))
+    {
+        /* BadVAddr */
+        *data = regs->user_regs.csr_badvaddr;
+        return 0;
+    }
+    else if (offset == (LOONGARCH64_crmd * sizeof(uint64_t)))
+    {
+        /* CRMD */
+        *data = regs->user_regs.csr_crmd;
+        return 0;
+    }
+    else if (offset == (LOONGARCH64_prmd * sizeof(uint64_t)))
+    {
+        /* PRMD */
+        *data = regs->user_regs.csr_prmd;
+        return 0;
+    }
+    else if (offset == (LOONGARCH64_euen * sizeof(uint64_t)))
+    {
+        /* EUEN */
+        *data = regs->user_regs.csr_euen;
+        return 0;
+    }
+    else if (offset == (LOONGARCH64_ecfg * sizeof(uint64_t)))
+    {
+        /* ECFG */
+        *data = regs->user_regs.csr_ecfg;
+        return 0;
+    }
+    else if (offset == (LOONGARCH64_estat * sizeof(uint64_t)))
+    {
+        /* ESTAT */
+        *data = regs->user_regs.csr_estat;
+        return 0;
+    }
+
+    return -EIO; /* 无效的偏移量 */
+}
+
+/**
+ * @brief 根据 offset 设置寄存器值
+ *
+ * @details 按照 Linux PTRACE_POKEUSER 的偏移量约定设置寄存器值
+ *
+ * @param regs 用户寄存器结构
+ * @param offset 偏移量（以字节为单位）
+ * @param data 要设置的值
+ *
+ * @return 成功返回0，失败返回负错误码
+ */
+static int ptrace_poke_user(struct user *regs, unsigned int offset, unsigned long data)
+{
+    if (regs == NULL)
+    {
+        return -EINVAL;
+    }
+
+    /* 偏移量到寄存器的映射 */
+    if (offset < (LOONGARCH64_NUM_REGS * sizeof(uint64_t)))
+    {
+        /* 通用寄存器 r0-r31 */
+        int reg_index = (int)(offset / sizeof(uint64_t));
+        if (reg_index < LOONGARCH64_NUM_REGS)
+        {
+            regs->user_regs.regs[reg_index] = data;
+            return 0;
+        }
+    }
+    else if (offset == (LOONGARCH64_pc * sizeof(uint64_t)))
+    {
+        /* PC (csr_era) */
+        regs->user_regs.csr_era = data;
+        return 0;
+    }
+    else if (offset == (LOONGARCH64_badvaddr * sizeof(uint64_t)))
+    {
+        /* BadVAddr (只读) */
+        return -EIO;
+    }
+    else if (offset == (LOONGARCH64_crmd * sizeof(uint64_t)))
+    {
+        /* CRMD */
+        regs->user_regs.csr_crmd = data;
+        return 0;
+    }
+    else if (offset == (LOONGARCH64_prmd * sizeof(uint64_t)))
+    {
+        /* PRMD */
+        regs->user_regs.csr_prmd = data;
+        return 0;
+    }
+    else if (offset == (LOONGARCH64_euen * sizeof(uint64_t)))
+    {
+        /* EUEN */
+        regs->user_regs.csr_euen = data;
+        return 0;
+    }
+    else if (offset == (LOONGARCH64_ecfg * sizeof(uint64_t)))
+    {
+        /* ECFG */
+        regs->user_regs.csr_ecfg = data;
+        return 0;
+    }
+    else if (offset == (LOONGARCH64_estat * sizeof(uint64_t)))
+    {
+        /* ESTAT */
+        regs->user_regs.csr_estat = data;
+        return 0;
+    }
+
+    return -EIO; /* 无效的偏移量 */
+}
+
 /*************************** 标准 Linux ptrace 接口实现 ****************************/
 
 /**
@@ -546,46 +831,79 @@ static unsigned long copy_from_user(void *to, const void *from, unsigned long n)
  * @param addr 地址（根据请求类型不同含义不同）
  * @param data 数据（根据请求类型不同含义不同）
  *
- * @return 成功返回请求数据或0，失败返回-1并设置errno
+ * @return 成功返回请求数据或0，失败返回负错误码
  *
  * @retval 正数 PEEK 操作返回的数据
  * @retval 0 成功
- * @retval -1 失败（errno 包含错误码）
+ * @retval 负数 失败（错误码）
  */
 long sys_ptrace(enum __ptrace_request request, pid_t pid, void *addr, void *data)
 {
     pcb_t target_pcb = NULL;
+    pcb_t current_pcb = NULL;
     long ret = 0;
     struct user *regs = NULL;
-    struct iovec *iov = NULL;
+    unsigned long peek_data;
+    unsigned int offset;
+    int tmp_errno;
 
-    (void)pid;  /* TODO: 根据 pid 查找目标进程的 PCB */
-    (void)addr; /* 用于 PEEK/POKE 操作的地址 */
-
-    /* TODO: 根据 pid 获取目标进程的 PCB */
-    /* target_pcb = find_pcb_by_pid(pid); */
-    /* if (target_pcb == NULL) { */
-    /*     return -ESRCH; */
-    /* } */
-
-    /* 为了演示，使用传入的 pcb */
-    /* 实际实现中需要从进程表中查找 */
+    /* 根据 pid 查找目标进程 */
+    if (pid == 0)
+    {
+        /* pid == 0 表示当前进程 */
+        current_pcb = get_current_pcb();
+        if (request == PTRACE_TRACEME)
+        {
+            target_pcb = current_pcb;
+        }
+        else
+        {
+            /* 非 TRACEME 请求，pid=0 表示当前进程 */
+            target_pcb = current_pcb;
+        }
+    }
+    else
+    {
+        /* 查找指定 pid 的进程 */
+        target_pcb = find_pcb_by_pid(pid);
+        if (target_pcb == NULL)
+        {
+            return -ESRCH;
+        }
+    }
 
     switch (request)
     {
     case PTRACE_TRACEME:
         /* 本进程被父进程跟踪 */
+        if (current_pcb == NULL)
+        {
+            ret = -ESRCH;
+            break;
+        }
         /* 设置当前进程的 ptrace 标志 */
-        /* current->ptrace |= PT_PTRACED; */
+        current_pcb->ptrace |= PT_PTRACED;
         ret = 0;
         break;
 
     case PTRACE_PEEKTEXT:
     case PTRACE_PEEKDATA:
         /* 从内存读取字 */
-        /* TODO: 实现内存读取 */
-        /* ret = ptrace_peek_text(target_pcb, addr, data); */
-        ret = -ENOSYS;
+        /* addr 是目标地址，data 是返回数据的指针 */
+        if ((addr == NULL) || (data == NULL))
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        /* 从目标进程读取一个字 */
+        ret = (long)ptrace_read_mem(target_pcb, addr, &peek_data, sizeof(unsigned long));
+        if (ret == 0)
+        {
+            /* 将读取的数据拷贝到用户空间 */
+            *(unsigned long *)data = peek_data;
+            ret = peek_data; /* PEEK 操作返回读取的数据 */
+        }
         break;
 
     case PTRACE_PEEKUSER:
@@ -597,30 +915,84 @@ long sys_ptrace(enum __ptrace_request request, pid_t pid, void *addr, void *data
             break;
         }
 
-        /* TODO: 根据 addr 获取对应寄存器 */
-        /* ret = ptrace_peek_user(target_pcb, addr, data); */
-        ret = -ENOSYS;
+        /* 转换 addr 为偏移量 */
+        offset = (unsigned int)(uintptr_t)addr;
+
+        /* 获取目标进程的寄存器 */
+        regs = get_user_regs(target_pcb);
+        if (regs == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        /* 根据偏移量读取对应的寄存器 */
+        tmp_errno = ptrace_peek_user(regs, offset, &peek_data);
+        if (tmp_errno == 0)
+        {
+            *(unsigned long *)data = peek_data;
+            ret = peek_data; /* PEEK 操作返回读取的数据 */
+        }
+        else
+        {
+            ret = tmp_errno;
+        }
+
+        free(regs);
         break;
 
     case PTRACE_POKETEXT:
     case PTRACE_POKEDATA:
         /* 向内存写入字 */
-        /* TODO: 实现内存写入 */
-        /* ret = ptrace_poke_text(target_pcb, addr, data); */
-        ret = -ENOSYS;
+        /* addr 是目标地址，data 是要写入的数据 */
+        if (addr == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        /* 向目标进程写入一个字 */
+        peek_data = (unsigned long)(uintptr_t)data;
+        ret = (long)ptrace_write_mem(target_pcb, addr, &peek_data, sizeof(unsigned long));
         break;
 
     case PTRACE_POKEUSER:
         /* 向 USER 区域写入（寄存器） */
+        /* addr 是寄存器偏移，data 是要写入的数据 */
         if (data == NULL)
         {
             ret = -EFAULT;
             break;
         }
 
-        /* TODO: 根据 addr 设置对应寄存器 */
-        /* ret = ptrace_poke_user(target_pcb, addr, data); */
-        ret = -ENOSYS;
+        /* 转换 addr 和 data */
+        offset = (unsigned int)(uintptr_t)addr;
+        peek_data = (unsigned long)(uintptr_t)data;
+
+        /* 获取目标进程的寄存器 */
+        regs = get_user_regs(target_pcb);
+        if (regs == NULL)
+        {
+            ret = -EFAULT;
+            break;
+        }
+
+        /* 根据偏移量设置对应的寄存器 */
+        ret = (long)ptrace_poke_user(regs, offset, peek_data);
+        if (ret == 0)
+        {
+            /* 验证并设置寄存器 */
+            if (valid_user_regs(regs) == 0)
+            {
+                set_user_regs(target_pcb, regs);
+            }
+            else
+            {
+                ret = -EINVAL;
+            }
+        }
+
+        free(regs);
         break;
 
     case PTRACE_CONT:
@@ -636,7 +1008,13 @@ long sys_ptrace(enum __ptrace_request request, pid_t pid, void *addr, void *data
     case PTRACE_KILL:
         /* 终止进程 */
         /* TODO: 发送 SIGKILL 信号给目标进程 */
-        ret = -ENOSYS;
+        /* 临时实现：停止进程 */
+        if (target_pcb != NULL)
+        {
+            ptrace_cancel_bpt(target_pcb);
+            /* kill_task(target_pcb); */
+        }
+        ret = -ENOSYS; /* 需要信号支持 */
         break;
 
     case PTRACE_SINGLESTEP:
@@ -810,7 +1188,15 @@ long sys_ptrace(enum __ptrace_request request, pid_t pid, void *addr, void *data
     case PTRACE_ATTACH:
         /* 附加到进程 */
         /* TODO: 发送 SIGSTOP 给目标进程并附加 */
-        ret = -ENOSYS;
+        /* 临时实现：直接设置 ptrace 标志 */
+        if (target_pcb == NULL)
+        {
+            ret = -ESRCH;
+            break;
+        }
+        target_pcb->ptrace |= PT_PTRACED;
+        /* send_signal(target_pcb, SIGSTOP); */
+        ret = 0;
         break;
 
     case PTRACE_DETACH:
@@ -818,15 +1204,23 @@ long sys_ptrace(enum __ptrace_request request, pid_t pid, void *addr, void *data
         if (target_pcb != NULL)
         {
             ptrace_cancel_bpt(target_pcb);
-            /* TODO: 清除 ptrace 标志并恢复进程运行 */
+            /* 清除 ptrace 标志并恢复进程运行 */
+            target_pcb->ptrace &= ~PT_PTRACED;
+            /* wake_up_process(target_pcb); */
         }
         ret = 0;
         break;
 
     case PTRACE_SEIZE:
         /* 占用进程（不停止它） */
-        /* TODO: 类似 ATTACH 但不发送 SIGSTOP */
-        ret = -ENOSYS;
+        /* 类似 ATTACH 但不发送 SIGSTOP */
+        if (target_pcb == NULL)
+        {
+            ret = -ESRCH;
+            break;
+        }
+        target_pcb->ptrace |= PT_PTRACED;
+        ret = 0;
         break;
 
     case PTRACE_INTERRUPT:
