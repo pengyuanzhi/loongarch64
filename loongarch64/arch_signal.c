@@ -1113,10 +1113,6 @@ int rt_sigreturn(struct arch_context *context)
         goto badframe;
     set_current_blocked(&set);
     sig = restore_sigcontext(context, (struct sigcontext *)&frame->rs_uctx.uc_mcontext);
-    // if (sig < 0)
-    //	goto badframe;
-    // else if (sig)
-    //     kernel_signal_kill(ttosProcessSelf()->taskControlId->tid, TO_THREAD, sig, SI_KERNEL, 0);
     /* TODO:jcai 下面将 zero(r0) 寄存器设置为0是何用意？是否应该是设置 a7(r11) 为0？*/
     context->regs[0] = 0; /* No syscall restarting */
     if (restore_altstack(&frame->rs_uctx.uc_stack, context->regs[3]))
@@ -1217,12 +1213,9 @@ static void handle_signal(struct ksignal *ksig, struct arch_context *context, bo
 {
     int ret;
     process_sigset_t *oldset = sigmask_to_save();
-    //     ttosGetRunningTask(), ttosGetRunningTaskName(), __FUNCTION__, __LINE__,
-    //     context->regs[11], ksig->sig, ksig->ka.__sa_handler.sa_handler);
     setup_rt_frame(ksig, context, oldset);
     signal_delivered(ksig, 0);
     TTOS_TaskEnterUserHook(ttosProcessSelf()->taskControlId);
-    // signal_setup_done(ksig, 0);
     restore_context(context);
 }
 
@@ -1269,20 +1262,14 @@ int arch_do_signal(struct arch_context *context)
         {
         case -ERESTART_RESTARTBLOCK:
         case -ERESTARTNOHAND:
-            //     ttosGetRunningTask(), ttosGetRunningTaskName(), __func__, __LINE__,
-            //     context->regs[11], context->regs[4], context->orig_a0, context->regs[5]);
             context->regs[4] = -EINTR;
             break;
         case -ERESTARTSYS:
             if (!(ksig.ka.sa_flags & SA_RESTART))
             {
-                //     ttosGetRunningTask(), ttosGetRunningTaskName(), __func__, __LINE__,
-                //     context->regs[11], context->regs[4], context->orig_a0, context->regs[5]);
                 context->regs[4] = -EINTR;
                 break;
             }
-            //     ttosGetRunningTask(), ttosGetRunningTaskName(), __func__, __LINE__,
-            //     context->regs[11], context->regs[4], context->orig_a0, context->regs[5]);
             context->regs[4] = context->orig_a0;
             /* 用户空间是通过系统调用指令进入到系统调用异常的。
             csr_era 记录的是用户空间系统调用指令的地址。但是在调用本函数前，已经在 do_syscall() 中
@@ -1293,8 +1280,6 @@ int arch_do_signal(struct arch_context *context)
             context->csr_era -= 4;
             break;
         case -ERESTARTNOINTR:
-            //     ttosGetRunningTask(), ttosGetRunningTaskName(), __func__, __LINE__,
-            //     context->regs[11], context->regs[4], context->orig_a0, context->regs[5]);
             context->regs[4] = context->orig_a0;
             context->regs[11] = __NR_restart_syscall;
             /* 用户空间是通过系统调用指令进入到系统调用异常的。
@@ -1316,8 +1301,6 @@ int arch_do_signal(struct arch_context *context)
         case -ERESTARTNOHAND:
         case -ERESTARTSYS:
         case -ERESTARTNOINTR:
-            //     ttosGetRunningTask(), ttosGetRunningTaskName(), __func__, __LINE__,
-            //     context->regs[11], context->regs[4], context->orig_a0, context->regs[5]);
             context->regs[4] = context->orig_a0;
             /* 用户空间是通过系统调用指令进入到系统调用异常的。
             csr_era 记录的是用户空间系统调用指令的地址。但是在调用本函数前，已经在 do_syscall() 中
@@ -1328,8 +1311,6 @@ int arch_do_signal(struct arch_context *context)
             context->csr_era -= 4;
             break;
         case -ERESTART_RESTARTBLOCK:
-            //     ttosGetRunningTask(), ttosGetRunningTaskName(), __func__, __LINE__,
-            //     context->regs[11], context->regs[4], context->orig_a0, context->regs[5]);
             context->regs[4] = context->orig_a0;
             context->regs[11] = __NR_restart_syscall;
             /* 用户空间是通过系统调用指令进入到系统调用异常的。
