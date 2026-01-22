@@ -38,12 +38,12 @@ void reset_debug_state(void);
  * @param args  用户参数（a0，将被清零）
  * @param sp    用户栈指针（a1 -> sp）
  * @param entry 用户入口地址（a2 -> ERA）
- * @param crmd  当前模式寄存器值（CRMD）
+ * @param prmd  前一个模式寄存器值（PRMD，ertn 会将其复制到 CRMD）
  *
  * @note 此函数不会返回
- * @note 直接写入 CRMD 寄存器设置用户模式（PLV=3）
+ * @note ertn 指令会将 PRMD[1:0](PPLV) 复制到 CRMD[1:0](PLV)
  */
-extern void return2user(uintptr_t args, uintptr_t sp, uintptr_t entry, uintptr_t crmd);
+extern void return2user(uintptr_t args, uintptr_t sp, uintptr_t entry, uintptr_t prmd);
 /*************************** 函数实现 ****************************/
 /**
  * @brief 从内核模式切换到用户模式
@@ -80,25 +80,24 @@ __noreturn void arch_run2user(void)
     /*
      * 调用汇编函数切换到用户模式
      *
-     * CRMD 寄存器值说明（0x1F）：
-     *   - BIT[1:0]  PLV  = 3    (用户模式)
-     *   - BIT[2]    IE   = 1    (中断使能)
-     *   - BIT[3]    DA   = 1    (地址异常使能)
-     *   - BIT[4]    PG   = 0    (分页禁用，根据需要调整)
-     *   - BIT[5:6]  DACF = 0    (数据访问格式)
-     *   - BIT[7:8]  DACM = 0    (数据访问掩码)
-     *   - BIT[9]    WE   = 0    (执行使能)
+     * PRMD 寄存器值说明（0x0F）：
+     *   - BIT[1:0]  PPLV = 3    (前一个特权级别 = 用户模式)
+     *   - BIT[2]    PIE  = 1    (前一个中断使能)
+     *   - BIT[3]    PWE  = 1    (前一个等待使能)
      *
-     * 注意：0x1F 是最小用户模式配置。如果需要分页或其他特性，
-     *       可以设置对应的位（如 PG=1 需要 0x2F）。
+     * ertn 指令会执行以下操作：
+     *   1. 将 PRMD[PPLV] 复制到 CRMD[PLV]
+     *   2. 将 PRMD[PIE]  复制到 CRMD[IE]
+     *   3. 将 PRMD[PWE]  复制到 CRMD[DA]
+     *   4. 跳转到 ERA 寄存器中的地址
      *
      * 参数：
      *   - pcb->args: 传递给用户程序的参数（注意：会被清零）
      *   - pcb->userStack: 用户栈指针
      *   - pcb->entry: 用户程序入口地址
-     *   - 0x1F: CRMD 寄存器值，设置 PLV=3 (用户模式)
+     *   - 0x0F: PRMD 寄存器值，设置 PPLV=3 (用户模式)
      */
-    return2user((uintptr_t)pcb->args, (uintptr_t)pcb->userStack, (uintptr_t)pcb->entry, 0x1FU);
+    return2user((uintptr_t)pcb->args, (uintptr_t)pcb->userStack, (uintptr_t)pcb->entry, 0x0FU);
 
     /* 永远不会执行到这里，但为了符合MISRA规范，使用for(;;) */
     for (;;)
