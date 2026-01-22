@@ -11,10 +11,12 @@
  *          - 用户态信号处理
  *
  * @note MISRA-C:2012 合规
+ * @warning 信号处理必须在锁保护下进行
  *
  * @copyright Copyright (c) 2025 Intewell Team
  */
-/************************头 文 件******************************/
+
+/*************************** 头文件包含 ****************************/
 #include <arch-sigcontext.h>
 #include <arch-uaccess.h>
 #include <assert.h>
@@ -65,10 +67,33 @@ struct extctx_layout
     struct _ctx_layout lbt;
     struct _ctx_layout end;
 };
+
+/*************************** 函数实现 ****************************/
+
+/**
+ * @brief 信号设置完成通知
+ *
+ * @details 信号处理框架设置完成后调用
+ *
+ * @param ksig 信号信息结构体指针
+ * @param stepping 是否单步执行
+ *
+ * @return 无
+ */
 void signal_setup_done(struct ksignal *ksig, int stepping)
 {
     signal_delivered(ksig, stepping);
 }
+
+/**
+ * @brief 通过上下文信息获取实际上下文指针
+ *
+ * @details 从sctx_info结构体中提取实际的上下文指针
+ *
+ * @param info 上下文信息结构体指针
+ *
+ * @return 实际的用户空间上下文指针
+ */
 static void __user *get_ctx_through_ctxinfo(struct sctx_info *info)
 {
     return (void __user *)((char *)info + sizeof(struct sctx_info));
@@ -335,7 +360,7 @@ static int protected_save_fpu_context(struct extctx_layout *extctx)
     uint64_t __user *regs = (uint64_t *)&fpu_ctx->regs;
     uint64_t __user *fcc = &fpu_ctx->fcc;
     uint32_t __user *fcsr = &fpu_ctx->fcsr;
-    while (1)
+    for (;;)
     {
         err = copy_fpu_to_sigcontext(fpu_ctx);
         err |= __put_user(FPU_CTX_MAGIC, &info->magic);
@@ -360,7 +385,7 @@ static int protected_restore_fpu_context(struct extctx_layout *extctx)
     err = sig = fcsr_pending(fcsr);
     if (err < 0)
         return err;
-    while (1)
+    for (;;)
     {
         err = copy_fpu_from_sigcontext(fpu_ctx);
         if (likely(!err))
@@ -381,7 +406,7 @@ static int protected_save_lsx_context(struct extctx_layout *extctx)
     uint64_t __user *fcc = &lsx_ctx->fcc;
     uint32_t __user *fcsr = &lsx_ctx->fcsr;
     pcb_t pcb = ttosProcessSelf();
-    while (1)
+    for (;;)
     {
         if (is_lsx_enabled())
             err = save_hw_lsx_context(lsx_ctx);
@@ -416,7 +441,7 @@ static int protected_restore_lsx_context(struct extctx_layout *extctx)
     err = sig = fcsr_pending(fcsr);
     if (err < 0)
         return err;
-    while (1)
+    for (;;)
     {
         if (is_lsx_enabled())
             err = restore_hw_lsx_context(lsx_ctx);
@@ -447,7 +472,7 @@ static int protected_save_lasx_context(struct extctx_layout *extctx)
     uint64_t __user *fcc = &lasx_ctx->fcc;
     uint32_t __user *fcsr = &lasx_ctx->fcsr;
     pcb_t pcb = ttosProcessSelf();
-    while (1)
+    for (;;)
     {
         if (is_lasx_enabled())
             err = save_hw_lasx_context(lasx_ctx);
@@ -482,7 +507,7 @@ static int protected_restore_lasx_context(struct extctx_layout *extctx)
     err = sig = fcsr_pending(fcsr);
     if (err < 0)
         return err;
-    while (1)
+    for (;;)
     {
         if (is_lasx_enabled())
             err = restore_hw_lasx_context(lasx_ctx);
@@ -545,7 +570,7 @@ static int parse_extcontext(struct sigcontext __user *sc, struct extctx_layout *
     int err = 0;
     unsigned int magic, size;
     struct sctx_info __user *info = (struct sctx_info __user *)&sc->sc_extcontext;
-    while (1)
+    for (;;)
     {
         err |= __get_user(magic, &info->magic);
         err |= __get_user(size, &info->size);
@@ -672,6 +697,16 @@ static void __user *get_sigframe(struct ksignal *ksig, struct arch_context *cont
         KLOG_E("not aligned 16");
     return (void __user *)sp;
 }
+
+/**
+ * @brief 保存FPU上下文到信号帧
+ *
+ * @details 如果CPU支持FPU，则保存FPU状态到信号帧
+ *
+ * @param frame 实时信号帧指针
+ *
+ * @return 无
+ */
 static void save_fpu(struct rt_sigframe *frame)
 {
     if (cpu_has_fpu)
@@ -682,6 +717,20 @@ static void restore_fpu(struct rt_sigframe *frame)
     if (cpu_has_fpu)
         _restore_fp(&frame->fpu);
 }
+
+/**
+ * @brief 实时信号返回处理
+ *
+ * @details 从信号处理程序返回，恢复用户上下文
+ *          从用户空间栈上的信号帧恢复寄存器和FPU状态
+ *
+ * @param context 架构上下文指针
+ *
+ * @return 返回a0寄存器的值（系统调用返回值）
+ *
+ * @note 信号帧损坏时会发送SIGSEGV信号
+ * @warning 此函数必须在信号上下文中调用
+ */
 int rt_sigreturn(struct arch_context *context)
 {
     int sig;
@@ -712,6 +761,21 @@ badframe:
     kernel_signal_kill(ttosProcessSelf()->taskControlId->tid, TO_THREAD, SIGSEGV, SI_KERNEL, 0);
     return 0;
 }
+
+/**
+ * @brief 设置实时信号处理帧
+ *
+ * @details 在用户空间栈上构建信号帧
+ *          包含siginfo、ucontext和扩展上下文
+ *
+ * @param ksig 信号信息结构体指针
+ * @param context 架构上下文指针
+ * @param set 信号掩码
+ *
+ * @return 成功返回0，失败返回负错误码
+ *
+ * @note 此函数会修改用户寄存器以准备进入信号处理程序
+ */
 static int setup_rt_frame(struct ksignal *ksig, struct arch_context *context, process_sigset_t *set)
 {
     int err = 0;
@@ -761,6 +825,21 @@ static int setup_rt_frame(struct ksignal *ksig, struct arch_context *context, pr
     context->csr_era = (unsigned long)ksig->ka.__sa_handler.sa_handler;
     return 0;
 }
+
+/**
+ * @brief 处理信号传递
+ *
+ * @details 设置信号处理帧并准备传递信号到用户空间
+ *          处理系统调用重启逻辑
+ *
+ * @param ksig 信号信息结构体指针
+ * @param context 架构上下文指针
+ * @param in_syscall 是否在系统调用中
+ *
+ * @return 无
+ *
+ * @note 此函数不会返回，会直接切换到用户空间
+ */
 static void handle_signal(struct ksignal *ksig, struct arch_context *context, bool in_syscall)
 {
     int ret;
@@ -798,6 +877,20 @@ static void handle_signal(struct ksignal *ksig, struct arch_context *context, bo
     // signal_setup_done(ksig, 0);
     restore_context(context);
 }
+
+/**
+ * @brief 架构相关的信号处理入口
+ *
+ * @details 检查并处理待传递的信号
+ *          处理系统调用重启逻辑
+ *
+ * @param context 架构上下文指针
+ *
+ * @return 无
+ *
+ * @note 此函数在内核返回用户空间前调用
+ * @warning 会修改context的内容
+ */
 int arch_do_signal(struct arch_context *context)
 {
     struct ksignal ksig;

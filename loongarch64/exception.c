@@ -1,9 +1,9 @@
 /**
  * @file    exception.c
  * @brief   LoongArch64异常和中断处理实现
- * @author  AISafe64 Team
- * @date    2025-01-21
- * @version 1.0
+ * @author  Intewell Team
+ * @date    2025-01-22
+ * @version 1.1
  *
  * @details 本文件实现了LoongArch64异常和中断处理相关功能
  *          - 异常向量表初始化
@@ -15,7 +15,7 @@
  * @note MISRA-C:2012 合规
  * @warning 异常处理代码必须在关中断状态下执行
  *
- * @copyright Copyright (c) 2025 AISafe64 Team
+ * @copyright Copyright (c) 2025 Intewell Team
  */
 
 /*************************** 头文件包含 ****************************/

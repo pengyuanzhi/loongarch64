@@ -1,21 +1,24 @@
-#include <commonTypes.h>
 /**
- * @file    arch/x86_64/arch_uaccess.c
- * @author  maoyz
- * @brief
- * @version 3.0.0
- * @date    2025-02-21
+ * @file    arch_uaccess.c
+ * @brief   LoongArch64用户空间访问
+ * @author  Intewell Team
+ * @date    2025-01-21
+ * @version 1.0
  *
- * 8c83d7de 2024-07-02 移除头文件路径中的linux
- * ac006b61 2024-07-02 移除一级ttos目录
- * b041d869 2024-05-15 格式化代码并处理一些头文件依赖问题
- * 5a4fab1e 2024-05-13 修复uaccess
- * db6c3f60 2024-04-24 添加copy_from_user copy_to_user代码实现(未验证)
+ * @details 本文件实现用户空间访问权限检查和数据复制
+ *          - 用户空间地址验证
+ *          - 内核空间地址验证
+ *          - 页表权限检查
+ *          - 安全的数据复制操作
  *
- * 科东(广州)软件科技有限公司 版权所有
- * @copyright Copyright (C) 2023 Intewell Inc. All Rights Reserved.
+ * @note MISRA-C:2012 合规
+ * @warning 用户空间访问必须严格验证权限
+ *
+ * @copyright Copyright (c) 2025 Intewell Team
  */
-/************************头 文 件******************************/
+
+/*************************** 头文件包含 ****************************/
+#include <commonTypes.h>
 #include <errno.h>
 #include <mmu.h>
 #include <stdio.h>
@@ -25,30 +28,45 @@
 #include <system/types.h>
 #include <ttosMM.h>
 #include <uaccess.h>
+
 #define KLOG_TAG "mmu_uaccess"
 #include <klog.h>
-/************************宏 定 义******************************/
+
+/*************************** 宏定义 ****************************/
 #define ACCESS_R 1
 #define ACCESS_W 2
 #define ACCESS_RW 4
-/************************类型定义******************************/
-/************************外部声明******************************/
-/************************前向声明******************************/
+
+/*************************** 类型定义 ****************************/
+
+/*************************** 外部声明 ****************************/
+
+/*************************** 前向声明 ****************************/
 static uint64_t search_pgtable(virt_addr_t v_addr, phys_addr_t mmu_base);
 static uint64_t page_entry_get(phys_addr_t pte, int level, int idx);
 static bool is_page_dir(uint64_t ptable_entry);
-/************************模块变量******************************/
-/************************全局变量******************************/
-/************************函数实现******************************/
+
+/*************************** 模块变量 ****************************/
+
+/*************************** 全局变量 ****************************/
+
+/*************************** 函数实现 ****************************/
+
 /**
- * @brief
- *    用户空间访问权限检查
- * @param[in] user_addr 用户态地址
- * @param[in] n 要检查的字节数
- * @param[in] flag 要检查的权限
- * @retval
- *   true 检查成功
- *   false 检查失败
+ * @brief 用户空间访问权限检查
+ *
+ * @details 检查用户空间地址范围是否具有指定的访问权限
+ *          验证地址范围是否在用户空间内
+ *          遍历所有涉及的页表项，检查权限位
+ *
+ * @param user_addr 用户空间地址指针
+ * @param n 要检查的字节数
+ * @param flag 访问权限标志（ACCESS_R/ACCESS_W/ACCESS_RW）
+ *
+ * @return 检查成功返回true，失败返回false
+ *
+ * @note 此函数在系统调用和数据复制前调用
+ * @warning 必须确保地址范围完全在用户空间内
  */
 bool user_access_check(const void __user *user_addr, unsigned long n, int flag)
 {
@@ -106,16 +124,23 @@ bool user_access_check(const void __user *user_addr, unsigned long n, int flag)
         mmu_check_size -= PAGE_SIZE;
     }
     return true;
-} /**
-   * @brief
-   *    内核空间访问权限检查
-   * @param[in] user_addr 用户态地址
-   * @param[in] n 要检查的字节数
-   * @param[in] flag 要检查的权限
-   * @retval
-   *   true 检查成功
-   *   false 检查失败
-   */
+}
+
+/**
+ * @brief 内核空间访问权限检查
+ *
+ * @details 检查内核空间地址范围是否具有指定的访问权限
+ *          遍历所有涉及的页表项，检查权限位
+ *
+ * @param kernel_addr 内核空间地址指针
+ * @param n 要检查的字节数
+ * @param flag 访问权限标志（ACCESS_R/ACCESS_W/ACCESS_RW）
+ *
+ * @return 检查成功返回true，失败返回false
+ *
+ * @note 内核空间使用PGDH（高地址页表）
+ * @warning 内核访问失败通常表示严重错误
+ */
 bool kernel_access_check(const void *kernel_addr, unsigned long n, int flag)
 {
     unsigned long mmu_check_start;
@@ -157,6 +182,18 @@ bool kernel_access_check(const void *kernel_addr, unsigned long n, int flag)
     }
     return true;
 }
+
+/**
+ * @brief 获取页表项值
+ *
+ * @details 通过fix_map机制映射页表，然后读取指定索引的页表项
+ *
+ * @param pte 页表物理地址
+ * @param level 页表级别
+ * @param idx 页表项索引
+ *
+ * @return 页表项值
+ */
 static uint64_t page_entry_get(phys_addr_t pte, int level, int idx)
 {
     uint64_t value;
@@ -164,6 +201,17 @@ static uint64_t page_entry_get(phys_addr_t pte, int level, int idx)
     value = table[idx];
     return value;
 }
+
+/**
+ * @brief 搜索页表
+ *
+ * @details 遍历多级页表，查找虚拟地址对应的最终页表项
+ *
+ * @param v_addr 虚拟地址
+ * @param mmu_base MMU基地址（页表物理地址）
+ *
+ * @return 最终页表项值，未找到返回0
+ */
 static uint64_t search_pgtable(virt_addr_t v_addr, phys_addr_t mmu_base)
 {
     phys_addr_t pte = mmu_base;
@@ -191,6 +239,16 @@ static uint64_t search_pgtable(virt_addr_t v_addr, phys_addr_t mmu_base)
         }
     }
 }
+
+/**
+ * @brief 判断页表项是否为页目录
+ *
+ * @details 检查页表项是否指向下一级页表而非物理页
+ *
+ * @param ptable_entry 页表项值
+ *
+ * @return 是页目录返回true，是物理页返回false
+ */
 static bool is_page_dir(uint64_t ptable_entry)
 {
     if ((ptable_entry != NULL) && (ptable_entry & 0xffful))

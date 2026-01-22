@@ -14,37 +14,18 @@
  * @warning 此函数执行后不会返回到内核
  *
  * @copyright Copyright (c) 2025 Intewell Team
- */
-/*************************** 头文件包含 ****************************/
+ *
+/*************************** 头文件包含 ***************************/
 #include <assert.h>
 #include <cpu.h>
+#include <klog.h>
 #include <stdint.h>
 #include <system/compiler.h>
 #include <ttos.h>
 #include <ttosProcess.h>
-/*************************** 外部函数声明 ****************************/
-/**
- * @brief 重置调试状态
- *
- * @details 清除调试寄存器和断点状态
- */
-void reset_debug_state(void);
 
-/**
- * @brief 切换到用户模式
- *
- * @details 汇编函数，执行从内核模式到用户模式的实际切换
- *
- * @param args  用户参数（a0，将被清零）
- * @param sp    用户栈指针（a1 -> sp）
- * @param entry 用户入口地址（a2 -> ERA）
- * @param prmd  前一个模式寄存器值（PRMD）
- *
- * @note 此函数不会返回
- * @note ertn 是异常返回专用指令，会隐式地将 PRMD 恢复到 CRMD
- * @note 不需要也不应该手动写入 CRMD，ertn 会自动处理
- */
-extern void return2user(uintptr_t args, uintptr_t sp, uintptr_t entry, uintptr_t prmd);
+/************************* 外部函数声明 **************************/
+
 /*************************** 函数实现 ****************************/
 /**
  * @brief 从内核模式切换到用户模式
@@ -82,30 +63,37 @@ __noreturn void arch_run2user(void)
      * 调用汇编函数切换到用户模式
      *
      * PRMD 寄存器值说明（0x0F）：
-     *   - BIT[1:0]  PPLV = 3    (前一个特权级别 = 用户模式)
-     *   - BIT[2]    PIE  = 1    (前一个中断使能)
-     *   - BIT[3]    PWE  = 1    (前一个等待使能)
+     *   - BIT[1:0]  PPLV = 3    (特权级别 = 用户模式)
+     *   - BIT[2]    PIE  = 1    (中断使能)
+     *   - BIT[3]    PWE  = 1    (指令和数据监视点使能)
      *
      * ertn 指令（异常返回专用指令）的功能：
      *   1. 隐式地将 PRMD 恢复到 CRMD
      *      - PRMD[PPLV] → CRMD[PLV]  (恢复特权级)
      *      - PRMD[PIE]  → CRMD[IE]   (恢复中断使能)
-     *      - PRMD[PWE]  → CRMD[DA]   (恢复地址异常使能)
+     *      - PRMD[PWE]  → CRMD[DA]   (恢复指令和数据监视点使能)
      *   2. 跳转到 ERA 寄存器指向的地址
      *
      * 重要：不需要也不应该手动写入 CRMD，ertn 会自动处理！
      *
      * 参数：
-     *   - pcb->args: 传递给用户程序的参数（注意：会被清零）
+     *   - pcb->args: 传递给用户程序的参数（将被清零，实际参数通过 auxv 在栈上传递）
      *   - pcb->userStack: 用户栈指针
      *   - pcb->entry: 用户程序入口地址
-     *   - 0x0F: PRMD 寄存器值，设置 PPLV=3 (用户模式)
+     *   - 0x0F: PRMD 寄存器值，设置 PPLV=3 (用户模式、中断使能、指令和数据监视点使能)
      */
     return2user((uintptr_t)pcb->args, (uintptr_t)pcb->userStack, (uintptr_t)pcb->entry, 0x0FU);
 
-    /* 永远不会执行到这里，但为了符合MISRA规范，使用for(;;) */
+    /*
+     * 永远不会执行到这里
+     * return2user 函数会执行 ertn 指令跳转到用户空间
+     * 如果到达这里，说明系统出现了严重错误
+     */
+    KLOG_EMERG("ERROR: return2user returned unexpectedly, system may be in inconsistent state\n");
+
+    /* 为了符合MISRA规范，使用for(;;) */
     for (;;)
     {
-        /* 等待，但实际上不会到达这里 */
+        /* 等待，但实际上不应该到达这里 */
     }
 }

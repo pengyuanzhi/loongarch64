@@ -29,14 +29,10 @@
  *
  * @param ctx 任务上下文指针
  * @param sp  要设置的堆栈指针值
- *
- * @return 成功返回0
  */
-int32_t arch_switch_context_set_stack(T_TBSP_TaskContext *ctx, uint64_t sp)
+void arch_switch_context_set_stack(T_TBSP_TaskContext *ctx, uint64_t sp)
 {
     ctx->sp = sp;
-
-    return 0;
 }
 
 /**
@@ -44,15 +40,11 @@ int32_t arch_switch_context_set_stack(T_TBSP_TaskContext *ctx, uint64_t sp)
  *
  * @param context 异常上下文指针
  * @param value   要设置的返回值
- *
- * @return 成功返回0
  */
-int32_t arch_context_set_return(arch_exception_context_t *context, uint64_t value)
+void arch_context_set_return(arch_exception_context_t *context, uint64_t value)
 {
     /* a0是函数返回值寄存器（r4） */
     context->regs[REG_A0] = value;
-
-    return 0;
 }
 
 /**
@@ -60,15 +52,11 @@ int32_t arch_context_set_return(arch_exception_context_t *context, uint64_t valu
  *
  * @param context 异常上下文指针
  * @param value   要设置的堆栈指针值
- *
- * @return 成功返回0
  */
-int32_t arch_context_set_stack(arch_exception_context_t *context, uint64_t value)
+void arch_context_set_stack(arch_exception_context_t *context, uint64_t value)
 {
     /* sp（r3）寄存器用于堆栈指针 */
     context->regs[REG_SP] = value;
-
-    return 0;
 }
 
 /**
@@ -78,7 +66,7 @@ int32_t arch_context_set_stack(arch_exception_context_t *context, uint64_t value
  *
  * @return 成功返回0
  */
-int32_t arch_context_thread_init(arch_exception_context_t *context)
+int64_t arch_context_thread_init(arch_exception_context_t *context)
 {
     return 0;
 }
@@ -91,7 +79,7 @@ int32_t arch_context_thread_init(arch_exception_context_t *context)
  * @param context 异常上下文指针
  * @param index   寄存器索引（0-31，对应r0-r31）
  *
- * @return 返回寄存器值
+ * @return 返回寄存器值，index 无效时返回 -1
  *
  * @note LoongArch64通用寄存器：
  *       - r0: 零寄存器（硬编码为0）
@@ -100,10 +88,8 @@ int32_t arch_context_thread_init(arch_exception_context_t *context)
  *       - r4-r11: 参数寄存器和返回值（a0-a7）
  *       - r12-r20: 临时寄存器（t0-t8）
  *       - r21-r31: 保存寄存器（s0-s8）和特殊寄存器
- *
- * @warning 调用方必须保证 index < 32，否则会导致未定义行为
  */
-int64_t arch_context_get_args(arch_exception_context_t *context, uint32_t index)
+void arch_context_get_args(arch_exception_context_t *context, uint32_t index)
 {
     return context->regs[index];
 }

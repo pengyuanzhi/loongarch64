@@ -15,6 +15,7 @@
  *
  * @copyright Copyright (c) 2025 Intewell Team
  */
+
 /*************************** 头文件包含 ****************************/
 #include <barrier.h>
 #include <errno.h>
@@ -24,23 +25,35 @@
 #include <ttos.h>
 #include <ttosBase.h>
 #include <ttos_pic.h>
-/* TODO LOONGARCH */
+
 /*************************** 宏定义 ****************************/
+
 /*************************** 类型定义 ****************************/
+
 /*************************** 外部声明 ****************************/
 extern int32_t loongson2k_pic_ipi_ack(struct ttos_pic *pic, uint32_t *src_cpu, uint32_t *irq);
+
 /*************************** 前向声明 ****************************/
+
 /*************************** 模块变量 ****************************/
+
 /*************************** 全局变量 ****************************/
+
 /*************************** 函数实现 ****************************/
+
 /**
- * @brief
- *	  发送IPI
+ * @brief 发送IPI
+ *
+ * @details 向指定的CPU集合发送核间中断
+ *
  * @param[in] cpus 目的CPU集合。为0时，表示系统中已经使能的CPU
  * @param[in] ipi ipi中断号
  * @param[in] selfexcluded 发送IPI的目的CPU集合是否排除自己
+ *
+ * @return 成功返回0，失败返回-EIO
+ *
  * @retval 0 成功
- * @retval EIO 失败
+ * @retval -EIO 失败
  */
 static s32 ipi_send(cpu_set_t *cpus, u32 ipi, bool selfexcluded)
 {
@@ -92,32 +105,55 @@ static s32 ipi_send(cpu_set_t *cpus, u32 ipi, bool selfexcluded)
 }
 
 /**
- * @brief
- *	  发送重调度IPI
+ * @brief 发送重调度IPI
+ *
+ * @details 向指定的CPU集合发送重调度核间中断
+ *
  * @param[in] cpus 目的CPU集合。为0时，表示系统中已经使能的CPU
  * @param[in] selfexcluded 发送IPI的目的CPU集合是否排除自己
+ *
+ * @return 成功返回0，失败返回-EIO
+ *
  * @retval 0 成功
- * @retval EIO 失败
+ * @retval -EIO 失败
  */
 s32 ipi_reschedule(cpu_set_t *cpus, bool selfexcluded)
 {
     return ipi_send(cpus, GENERAL_IPI_SCHED, selfexcluded);
 }
+
 /**
- * @brief
- *	  重调度IPI处理函数，对于目前的调度策略，为空
+ * @brief 重调度IPI处理函数
+ *
+ * @details 处理重调度IPI中断，对当前CPU上任务进行调度
+ *
  * @param[in] irq 中断号
- * @param[in] 私有数据
- * @retval 无
+ * @param[in] param 私有数据
+ *
+ * @return 无
+ *
+ * @note 对于目前的调度策略，为空
  */
 void ipi_reschedule_handler(u32 irq, void *param)
 {
-    ttosSchedule();    // 对当前CPU上任务进行调度
+    ttosSchedule();    /* 对当前CPU上任务进行调度 */
 }
+
+/**
+ * @brief LoongArch IPI中断处理函数
+ *
+ * @details 处理LoongArch核间中断
+ *
+ * @param[in] irq 中断号
+ * @param[in] arg 参数
+ *
+ * @return 无
+ */
 void loongson_ipi_interrupt(uint32_t irq, void *arg)
 {
     struct ttos_pic *pic_node;
     uint32_t from_cpu;
+
     pic_node = ttos_pic_get_pic(PIC_FLAG_CPU);
     if (pic_node != NULL)
     {

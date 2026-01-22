@@ -21,6 +21,18 @@
 #define _HARD_FLOAT_
 #include <context.h>
 #include <ttos.h>
+
+/*************************** 函数实现 ****************************/
+/**
+ * @brief 主函数
+ *
+ * @details 程序入口点，定义arch_context结构体大小常量
+ *          用于汇编代码访问C结构体大小信息
+ *
+ * @return 成功返回0
+ *
+ * @note 此文件编译时运行，生成头文件供汇编使用
+ */
 int main(void)
 {
     DEFINE(ARCH_CONTEXT_SIZE, sizeof(struct arch_context));
@@ -28,6 +40,16 @@ int main(void)
     return 0;
 }
 
+/**
+ * @brief 输出ptreg相关定义
+ *
+ * @details 生成arch_context结构体各成员的偏移量常量
+ *          包括通用寄存器R0-R31和CSR寄存器
+ *
+ * @return 无
+ *
+ * @note 生成的常量供汇编代码使用
+ */
 static void __attribute__((__used__)) output_ptreg_defines(void)
 {
     COMMENT("LoongArch arch_context offsets.");
@@ -73,6 +95,17 @@ static void __attribute__((__used__)) output_ptreg_defines(void)
     OFFSET(PT_ORIG_A0, arch_context, orig_a0);
     DEFINE(PT_SIZE, sizeof(struct arch_context));
 }
+
+/**
+ * @brief 输出FPU寄存器定义
+ *
+ * @details 生成loongarch_fpu结构体各成员的偏移量常量
+ *          包括浮点寄存器FPR0-FPR31和FPU控制寄存器
+ *
+ * @return 无
+ *
+ * @note 生成的常量供汇编代码使用
+ */
 static void __attribute__((__used__)) output_thread_fpu_defines(void)
 {
     OFFSET(THREAD_FPR0, loongarch_fpu, fpr[0]);
@@ -111,10 +144,31 @@ static void __attribute__((__used__)) output_thread_fpu_defines(void)
     OFFSET(THREAD_FCC, loongarch_fpu, fcc);
     OFFSET(THREAD_FTOP, loongarch_fpu, ftop);
 }
+
+/**
+ * @brief 输出内存管理相关定义
+ *
+ * @details 生成页表相关的常量定义
+ *
+ * @return 无
+ *
+ * @note 生成的常量供汇编代码使用
+ */
 static void __attribute__((__used__)) mm_defines(void)
 {
     DEFINE(_PTE_T_LOG2, PTE_T_LOG2);
 }
+
+/**
+ * @brief 输出thread_info相关定义
+ *
+ * @details 生成task_context结构体各成员的偏移量常量
+ *          包括通用寄存器、CSR寄存器、PC、SP等
+ *
+ * @return 无
+ *
+ * @note 生成的常量供汇编代码使用
+ */
 static void __attribute__((__used__)) output_thread_info_defines(void)
 {
     COMMENT("LoongArch thread_info offsets.");

@@ -1,9 +1,9 @@
 /**
  * @file    cpu.c
  * @brief   LoongArch64 CPU管理实现
- * @author  AISafe64 Team
- * @date    2025-01-21
- * @version 1.0
+ * @author  Intewell Team
+ * @date    2025-01-22
+ * @version 1.1
  *
  * @details 本文件实现了LoongArch64 CPU相关管理功能
  *          - CPU ID获取与设置
@@ -14,26 +14,36 @@
  * @note MISRA-C:2012 合规
  * @warning 多核操作需要正确使用内存屏障
  *
- * @copyright Copyright (c) 2025 AISafe64 Team
+ * @copyright Copyright (c) 2025 Intewell Team
  */
+
 /*************************** 头文件包含 ****************************/
 #include <cpu.h>
 #include <driver/cpudev.h>
 #include <limits.h>
 #include <percpu.h>
 #include <stdbool.h>
+
 /*************************** 宏定义 ****************************/
+
 /*************************** 类型定义 ****************************/
+
 /*************************** 全局变量 ****************************/
 /* MAP BASE */
 unsigned long vm_map_base; /**< @brief 虚拟内存映射基地址 */
+
 /* Virtual Address size in bits */
 unsigned long g_vaBits; /**< @brief 虚拟地址宽度（位） */
+
 /* Physical Address size in bits */
 unsigned long g_paBits; /**< @brief 物理地址宽度（位） */
+
 /*************************** 外部声明 ****************************/
+
 /*************************** 前向声明 ****************************/
+
 /*************************** 模块变量 ****************************/
+
 /*************************** 函数实现 ****************************/
 /**
  * @brief 设置CPU ID

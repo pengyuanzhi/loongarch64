@@ -115,6 +115,7 @@ static bool is_address_readable(uintptr_t addr)
 {
     /* 暂时返回true，后续需要添加真实的MMU检查 */
     (void)addr;
+
     return true;
 }
 

@@ -15,6 +15,7 @@
  *
  * @copyright Copyright (c) 2025 Intewell Team
  */
+
 /*************************** 头文件包含 ****************************/
 #include <adrspace.h>
 #include <asm.h>
@@ -24,28 +25,72 @@
 #include <mmu.h>
 #include <tlb.h>
 #include <ttosBase.h>
-pgd_t kernel_pg_dir[PTRS_PER_PGD] __attribute__((__section__(".bss..kernel_pg_dir")));
-pgd_t usr_pg_dir[PTRS_PER_PGD] __attribute__((__section__(".bss..page_aligned")))
-__attribute__((__aligned__(PAGE_SIZE)));
+
+/*************************** 宏定义 ****************************/
+
+/*************************** 类型定义 ****************************/
+
+/*************************** 外部声明 ****************************/
 extern long exception_handlers[VECSIZE * 128 / sizeof(long)];
 extern unsigned long eentry;
 extern unsigned long tlbrentry;
+
+/*************************** 前向声明 ****************************/
+void local_flush_icache_range(unsigned long start, unsigned long end);
+void set_handler(unsigned long offset, void *addr, unsigned long size);
+
+/*************************** 模块变量 ****************************/
+pgd_t kernel_pg_dir[PTRS_PER_PGD] __attribute__((__section__(".bss..kernel_pg_dir")));
+pgd_t usr_pg_dir[PTRS_PER_PGD] __attribute__((__section__(".bss..page_aligned")))
+                              __attribute__((__aligned__(PAGE_SIZE)));
+
+/*************************** 全局变量 ****************************/
+
+/*************************** 函数实现 ****************************/
+
+/**
+ * @brief 刷新本地所有TLB项
+ *
+ * @details 使当前CPU的所有TLB项无效
+ *
+ * @return 无
+ */
 void local_flush_tlb_all(void)
 {
     invtlb_all(INVTLB_CURRENT_ALL, 0, 0);
 }
 
+/**
+ * @brief 刷新本地用户空间TLB
+ *
+ * @details 使当前CPU的用户空间TLB项无效
+ *
+ * @return 无
+ */
 void local_flush_tlb_user(void)
 {
     invtlb_all(INVTLB_CURRENT_GFALSE, 0, 0);
 }
 
+/**
+ * @brief 刷新本地内核空间TLB
+ *
+ * @details 使当前CPU的内核空间TLB项无效
+ *
+ * @return 无
+ */
 void local_flush_tlb_kernel(void)
 {
     invtlb_all(INVTLB_CURRENT_GTRUE, 0, 0);
 }
 
-/* 设置页表层级以及遍历方式,目前配置为4级页表PGD->PUD->PMD->PTE */
+/**
+ * @brief 设置页表遍历器
+ *
+ * @details 设置页表层级以及遍历方式，目前配置为4级页表PGD->PUD->PMD->PTE
+ *
+ * @return 无
+ */
 static void setup_ptwalker(void)
 {
     unsigned long pwctl0 = 0, pwctl1 = 0;
@@ -53,49 +98,66 @@ static void setup_ptwalker(void)
     unsigned long pud_i = 0, pud_w = 0;
     unsigned long pmd_i = 0, pmd_w = 0;
     unsigned long pte_i = 0, pte_w = 0;
+
     pgd_i = PGDIR_SHIFT;
     pgd_w = PAGE_SIZE_SHIFT - 3;
+
 #if CONFIG_PGTABLE_LEVELS > 3
     pud_i = PUD_SHIFT;
     pud_w = PAGE_SIZE_SHIFT - 3;
 #endif
+
 #if CONFIG_PGTABLE_LEVELS > 2
     pmd_i = PMD_SHIFT;
     pmd_w = PAGE_SIZE_SHIFT - 3;
 #endif
+
     pte_i = PAGE_SIZE_SHIFT;
     pte_w = PAGE_SIZE_SHIFT - 3;
+
     pwctl0 = pte_i | pte_w << 5 | pmd_i << 10 | pmd_w << 15 | pud_i << 20 | pud_w << 25;
     pwctl1 = pgd_i | pgd_w << 6;
+
     csr_write64(pwctl0, LOONGARCH_CSR_PWCTL0);
     csr_write64(pwctl1, LOONGARCH_CSR_PWCTL1);
     csr_write64(PHYSADDR((long)kernel_pg_dir), LOONGARCH_CSR_PGDH);
     csr_write64(PHYSADDR((long)usr_pg_dir), LOONGARCH_CSR_PGDL);
     local_flush_tlb_all();
     csr_write64((long)get_csr_cpuid(), LOONGARCH_CSR_TMID);
-    // printk("pgd_i:[%d]-pud_i:[%d]-pmd_t:[%d] pte_i:[%d] \n\r",pgd_i,pud_i,pmd_i,pte_i);
-    // printk("virtual---kernel_pg_dir:[0x%lx]-usr_pg_dir:[0x%lx] \n\r",kernel_pg_dir,usr_pg_dir);
-    // printk("phy---kernel_pg_dir:[0x%lx]-usr_pg_dir:[0x%lx]
-    // \n\r",csr_read64(LOONGARCH_CSR_PGDH),csr_read64(LOONGARCH_CSR_PGDL));
 }
 
-void local_flush_icache_range(unsigned long start, unsigned long end);
-void set_handler(unsigned long offset, void *addr, unsigned long size);
-
+/**
+ * @brief 设置TLB处理函数
+ *
+ * @details 初始化TLB异常处理
+ *
+ * @return 无
+ */
 static void setup_tlb_handler(void)
 {
     setup_ptwalker();
     local_flush_tlb_all();
+
     /* The tlb handlers are generated only once */
     if (get_csr_cpuid() == 0)
     {
         memcpy((void *)tlbrentry, handle_tlb_refill, 0x80);
         local_flush_icache_range(tlbrentry, tlbrentry + 0x80);
+
         for (int i = EXCCODE_TLBL; i <= EXCCODE_TLBPE; i++)
+        {
             set_handler(i * VECSIZE, exception_table[i], VECSIZE);
+        }
     }
 }
 
+/**
+ * @brief 初始化TLB
+ *
+ * @details 初始化TLB硬件和页表配置
+ *
+ * @return 无
+ */
 void tlb_init(void)
 {
     /* 设置页表大小 */
@@ -104,10 +166,22 @@ void tlb_init(void)
     write_csr_tlbrefill_pagesize(PS_4K);
     setup_tlb_handler();
 }
-/* debug api */
+
+/**
+ * @brief 显示TLB信息
+ *
+ * @details 调试接口：显示指定地址的TLB信息
+ *
+ * @param[in] address 虚拟地址
+ *
+ * @return 无
+ *
+ * @note 此为调试API
+ */
 void show_tlb_info(unsigned long address)
 {
     int idx;
+
     address &= (PAGE_MASK << 1);
     write_csr_entryhi(address);
     tlb_probe();
@@ -115,6 +189,14 @@ void show_tlb_info(unsigned long address)
     printk("idx:[%d] \n\r", idx);
     tlb_read();
 }
+
+/**
+ * @brief 显示异常信息
+ *
+ * @details 打印TLB异常相关的寄存器信息
+ *
+ * @return 无
+ */
 void show_exception_info()
 {
     printk("TLB Refill");
@@ -132,6 +214,16 @@ void show_exception_info()
     printk("TLBELO0:[0x%lx] \n\r", csr_read64(LOONGARCH_CSR_TLBELO0));
     printk("TLBELO1:[0x%lx] \n\r", csr_read64(LOONGARCH_CSR_TLBELO1));
 }
+
+/**
+ * @brief 显示所有寄存器
+ *
+ * @details 打印异常上下文中的所有寄存器值
+ *
+ * @param[in] ptRegs 异常上下文指针
+ *
+ * @return 无
+ */
 void show_all_register(struct arch_context *ptRegs)
 {
     printk("zero:[%p] \t", ptRegs->regs[0]);
@@ -139,44 +231,67 @@ void show_all_register(struct arch_context *ptRegs)
     printk("tp:[%p] \t", ptRegs->regs[2]);
     printk("sp:[%p] \t", ptRegs->regs[3]);
     printk("\n\r");
+
     printk("a0:[%p] \t", ptRegs->regs[4]);
     printk("a1:[%p] \t", ptRegs->regs[5]);
     printk("a2:[%p] \t", ptRegs->regs[6]);
     printk("a3:[%p] \t", ptRegs->regs[7]);
     printk("\n\r");
+
     printk("a4:[%p] \t", ptRegs->regs[8]);
     printk("a5:[%p] \t", ptRegs->regs[9]);
     printk("a6:[%p] \t", ptRegs->regs[10]);
     printk("a7:[%p] \t", ptRegs->regs[11]);
     printk("\n\r");
+
     printk("t0:[%p] \t", ptRegs->regs[12]);
     printk("t1:[%p] \t", ptRegs->regs[13]);
     printk("t2:[%p] \t", ptRegs->regs[14]);
     printk("t3:[%p] \t", ptRegs->regs[15]);
     printk("\n\r");
+
     printk("t4:[%p] \t", ptRegs->regs[16]);
     printk("t5:[%p] \t", ptRegs->regs[17]);
     printk("t6:[%p] \t", ptRegs->regs[18]);
     printk("t7:[%p] \t", ptRegs->regs[19]);
     printk("t8:[%p] \t", ptRegs->regs[20]);
     printk("\n\r");
+
     printk("fp:[%p] \t", ptRegs->regs[22]);
     printk("s0:[%p] \t", ptRegs->regs[23]);
     printk("s1:[%p] \t", ptRegs->regs[24]);
     printk("s2:[%p] \t", ptRegs->regs[25]);
     printk("\n\r");
+
     printk("s3:[%p] \t", ptRegs->regs[26]);
     printk("s4:[%p] \t", ptRegs->regs[27]);
     printk("s5:[%p] \t", ptRegs->regs[28]);
     printk("s6:[%p] \t", ptRegs->regs[29]);
     printk("\n\r");
+
     printk("s7:[%p] \t", ptRegs->regs[30]);
     printk("s8:[%p] \t", ptRegs->regs[31]);
     printk("\n\r");
-    while (1)
-        ;
+
+    for (;;)
+    {
+        /* 无限循环停止 */
+    }
 }
-void __attribute__((__section__(".kprobes.text"))) do_page_fault(struct arch_context *regs, unsigned long write,
+
+/**
+ * @brief 处理页错误
+ *
+ * @details 处理TLB页错误异常
+ *
+ * @param[in] regs 异常上下文
+ * @param[in] write 是否为写操作
+ * @param[in] address 出错地址
+ *
+ * @return 无
+ */
+void __attribute__((__section__(".kprobes.text"))) do_page_fault(struct arch_context *regs,
+                                                                 unsigned long write,
                                                                  unsigned long address)
 {
     printk("page fault:bad address is %p write:[%d]\n\r", address, write);
@@ -193,6 +308,9 @@ void __attribute__((__section__(".kprobes.text"))) do_page_fault(struct arch_con
     printk("CPUID: %u\n", csr_read32(LOONGARCH_CSR_CPUID));
     show_exception_info();
     show_all_register(regs);
-    while (1)
-        ;
+
+    for (;;)
+    {
+        /* 无限循环停止 */
+    }
 }

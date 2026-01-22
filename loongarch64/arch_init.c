@@ -24,6 +24,7 @@
 #include <system/const.h>
 #include <system/types.h>
 #include <ttosMM.h>
+
 /*************************** 外部变量声明 ****************************/
 
 extern long long _start;    /**< 内核起始地址 */
