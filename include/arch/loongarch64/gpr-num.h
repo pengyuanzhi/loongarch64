@@ -2,8 +2,8 @@
  * @file    gpr-num.h
  * @brief   LoongArch64通用寄存器编号定义
  * @author  Intewell Team
- * @date    2025-01-21
- * @version 1.0
+ * @date    2025-01-22
+ * @version 1.1
  *
  * @details 本文件定义LoongArch64通用寄存器（GPR）的编号
  *          用于汇编代码中的寄存器编号映射

@@ -2,8 +2,8 @@
  * @file    larchintrin.h
  * @brief   LoongArch64 GCC内联函数接口
  * @author  Intewell Team
- * @date    2025-01-21
- * @version 1.0
+ * @date    2025-01-22
+ * @version 1.1
  *
  * @details 本文件定义LoongArch64 GCC编译器内联函数接口
  *          - 时间读取内联函数

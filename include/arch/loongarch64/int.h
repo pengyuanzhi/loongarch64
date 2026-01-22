@@ -24,18 +24,17 @@
 #include <system/types.h>
 
 /************************宏 定 义******************************/
+
+/**
+ * @brief 中断使能寄存器位定义
+ */
+#define REG_INT_ENABLE 0x00000004U
+
 /************************类型定义******************************/
 /************************外部变量******************************/
 /************************外部函数******************************/
 
 /************************内联函数******************************/
-
-/**
- * @brief 中断使能寄存器位定义
- *
- * @details CRMD寄存器的位2用于全局中断使能
- */
-#define REG_INT_ENABLE 0x00000004U
 
 /**
  * @defgroup IRQControl 本地中断控制
@@ -46,10 +45,6 @@
  * @brief 使能本地中断
  *
  * @details 设置CRMD寄存器的IE位（位2），使能处理器中断
- *
- * @return 无
- *
- * @note 使用csrxchg指令原子地更新CRMD寄存器
  */
 static inline void arch_local_irq_enable(void)
 {
@@ -64,10 +59,6 @@ static inline void arch_local_irq_enable(void)
  * @brief 禁用本地中断
  *
  * @details 清除CRMD寄存器的IE位（位2），禁用处理器中断
- *
- * @return 无
- *
- * @note 使用csrxchg指令原子地更新CRMD寄存器
  */
 static inline void arch_local_irq_disable(void)
 {
@@ -101,8 +92,6 @@ static inline unsigned long arch_local_irq_save(void)
  * @details 从flags恢复之前保存的中断状态
  *
  * @param flags 保存的中断标志
- *
- * @return 无
  */
 static inline void arch_local_irq_restore(unsigned long flags)
 {

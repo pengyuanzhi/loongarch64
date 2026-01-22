@@ -2,8 +2,8 @@
  * @file    pageTable.h
  * @brief   LoongArch64页表定义
  * @author  Intewell Team
- * @date    2025-01-21
- * @version 1.0
+ * @date    2025-01-22
+ * @version 1.1
  *
  * @details 本文件定义LoongArch64页表相关常量和宏
  *          - 多级页表配置

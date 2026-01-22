@@ -2,8 +2,8 @@
  * @file    ipi.h
  * @brief   LoongArch64处理器间中断接口
  * @author  Intewell Team
- * @date    2025-01-21
- * @version 1.0
+ * @date    2025-01-22
+ * @version 1.1
  *
  * @details 本文件定义LoongArch64处理器间中断(IPI)相关接口
  *          - IPI类型定义

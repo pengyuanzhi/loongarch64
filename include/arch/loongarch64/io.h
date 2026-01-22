@@ -2,8 +2,8 @@
  * @file    io.h
  * @brief   LoongArch64 I/O操作接口
  * @author  Intewell Team
- * @date    2025-01-21
- * @version 1.0
+ * @date    2025-01-22
+ * @version 1.1
  *
  * @details 本文件定义LoongArch64 I/O操作相关接口
  *          - 基本I/O读写操作
@@ -14,7 +14,8 @@
  *          - 等待位操作
  *
  * @note MISRA-C:2012 合规
- * @note 当前为通用实现，未考虑特定大小端
+ *
+ * @warning 当前为通用实现，未考虑特定大小端
  *
  * @copyright Copyright (c) 2025 Intewell Team
  */
@@ -39,8 +40,6 @@
 
 /**
  * @brief 体系架构通用I/O读接口
- *
- * @details 直接从I/O地址读取数据（volatile确保不被优化）
  */
 #define arch_readb(a) (*(volatile unsigned char *)(a))
 #define arch_readw(a) (*(volatile unsigned short *)(a))
@@ -49,8 +48,6 @@
 
 /**
  * @brief 体系架构通用I/O写接口
- *
- * @details 直接向I/O地址写入数据（volatile确保不被优化）
  */
 #define arch_writeb(v, a) (*(volatile unsigned char *)(a) = (v))
 #define arch_writew(v, a) (*(volatile unsigned short *)(a) = (v))
@@ -66,8 +63,6 @@
 
 /**
  * @brief 编译器屏障
- *
- * @details 防止编译器重排内存访问
  */
 #define barrier() __asm__ __volatile__("" : : : "memory")
 
@@ -90,8 +85,6 @@
 
 /**
  * @brief 通用I/O读接口（带读屏障）
- *
- * @details 从I/O地址读取8位数据并插入读屏障
  */
 #define readb(c)                         \
     ({                                   \
@@ -100,11 +93,6 @@
         v;                               \
     })
 
-/**
- * @brief 通用I/O读接口（带读屏障）
- *
- * @details 从I/O地址读取16位数据并插入读屏障
- */
 #define readw(c)                          \
     ({                                    \
         unsigned short v = arch_readw(c); \
@@ -112,11 +100,6 @@
         v;                                \
     })
 
-/**
- * @brief 通用I/O读接口（带读屏障）
- *
- * @details 从I/O地址读取32位数据并插入读屏障
- */
 #define readl(c)                        \
     ({                                  \
         unsigned int v = arch_readl(c); \
@@ -124,11 +107,6 @@
         v;                              \
     })
 
-/**
- * @brief 通用I/O读接口（带读屏障）
- *
- * @details 从I/O地址读取64位数据并插入读屏障
- */
 #define readq(c)                              \
     ({                                        \
         unsigned long long v = arch_readq(c); \
@@ -138,8 +116,6 @@
 
 /**
  * @brief 通用I/O写接口（带写屏障）
- *
- * @details 向I/O地址写入8位数据（前插写屏障）
  */
 #define writeb(v, c)           \
     ({                         \
@@ -147,33 +123,18 @@
         arch_writeb((v), (c)); \
     })
 
-/**
- * @brief 通用I/O写接口（带写屏障）
- *
- * @details 向I/O地址写入16位数据（前插写屏障）
- */
 #define writew(v, c)           \
     ({                         \
         iowmb();               \
         arch_writew((v), (c)); \
     })
 
-/**
- * @brief 通用I/O写接口（带写屏障）
- *
- * @details 向I/O地址写入32位数据（前插写屏障）
- */
 #define writel(v, c)           \
     ({                         \
         iowmb();               \
         arch_writel((v), (c)); \
     })
 
-/**
- * @brief 通用I/O写接口（带写屏障）
- *
- * @details 向I/O地址写入64位数据（前插写屏障）
- */
 #define writeq(v, c)           \
     ({                         \
         iowmb();               \

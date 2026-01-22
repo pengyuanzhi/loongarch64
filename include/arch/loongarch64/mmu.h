@@ -2,8 +2,8 @@
  * @file    mmu.h
  * @brief   LoongArch64 MMU配置接口
  * @author  Intewell Team
- * @date    2025-01-21
- * @version 1.0
+ * @date    2025-01-22
+ * @version 1.1
  *
  * @details 本文件定义LoongArch64内存管理单元(MMU)相关接口
  *          - 地址空间布局定义
