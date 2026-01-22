@@ -1,8 +1,8 @@
 /**
  * @file    exception.h
  * @brief   LoongArch64异常和中断处理接口
- * @author  AISafe64 Team
- * @date    2025-01-21
+ * @author  Intewell Team
+ * @date    2025-01-22
  * @version 1.0
  *
  * @details 本文件定义了LoongArch64异常和中断处理相关的接口

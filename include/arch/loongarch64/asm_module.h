@@ -2,7 +2,7 @@
  * @file    asm_module.h
  * @brief   汇编模块类型定义
  * @author  Intewell Team
- * @date    2025-01-21
+ * @date    2025-01-22
  * @version 1.0
  *
  * @details 本文件定义汇编模块使用的64位类型
@@ -35,7 +35,7 @@
 /**
  * @brief ILP32模式64位类型定义
  */
-typedef long long s64;          /**< 有符号64位整数 */
+typedef long long s64; /**< 有符号64位整数 */
 typedef unsigned long long u64; /**< 无符号64位整数 */
 
 #else
@@ -43,7 +43,7 @@ typedef unsigned long long u64; /**< 无符号64位整数 */
 /**
  * @brief LP64模式64位类型定义
  */
-typedef long s64;          /**< 有符号64位整数 */
+typedef long s64; /**< 有符号64位整数 */
 typedef unsigned long u64; /**< 无符号64位整数 */
 
 #endif

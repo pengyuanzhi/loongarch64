@@ -2,7 +2,7 @@
  * @file    asm-extable.h
  * @brief   汇编异常表宏定义
  * @author  Intewell Team
- * @date    2025-01-21
+ * @date    2025-01-22
  * @version 1.0
  *
  * @details 本文件定义汇编异常表（exception table）相关宏
@@ -79,9 +79,9 @@
 /**
  * @brief 异常数据寄存器位偏移
  */
-#define EX_DATA_REG_ERR_SHIFT 0        /**< 错误寄存器偏移 */
-#define EX_DATA_REG_ERR GENMASK(4, 0)  /**< 错误寄存器掩码 */
-#define EX_DATA_REG_ZERO_SHIFT 5       /**< 零值寄存器偏移 */
+#define EX_DATA_REG_ERR_SHIFT 0 /**< 错误寄存器偏移 */
+#define EX_DATA_REG_ERR GENMASK(4, 0) /**< 错误寄存器掩码 */
+#define EX_DATA_REG_ZERO_SHIFT 5 /**< 零值寄存器偏移 */
 #define EX_DATA_REG_ZERO GENMASK(9, 5) /**< 零值寄存器掩码 */
 
 /**
@@ -96,8 +96,8 @@
  *
  * @details 处理用户空间访问异常，设置错误码和零值寄存器
  */
-#define _ASM_EXTABLE_UACCESS_ERR_ZERO(insn, fixup, err, zero)               \
-    __DEFINE_ASM_GPR_NUMS                                                   \
+#define _ASM_EXTABLE_UACCESS_ERR_ZERO(insn, fixup, err, zero) \
+    __DEFINE_ASM_GPR_NUMS \
     __ASM_EXTABLE_RAW(#insn, #fixup, __stringify(EX_TYPE_UACCESS_ERR_ZERO), \
                       "(" EX_DATA_REG(ERR, err) " | " EX_DATA_REG(ZERO, zero) ")")
 

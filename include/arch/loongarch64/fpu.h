@@ -2,7 +2,7 @@
  * @file    fpu.h
  * @brief   LoongArch64浮点单元接口
  * @author  Intewell Team
- * @date    2025-01-21
+ * @date    2025-01-22
  * @version 1.0
  *
  * @details 本文件定义LoongArch64浮点单元(FPU)相关接口

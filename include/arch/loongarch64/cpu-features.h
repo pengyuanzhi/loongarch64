@@ -2,17 +2,17 @@
  * @file    cpu-features.h
  * @brief   LoongArch64 CPU特性检测接口
  * @author  Intewell Team
- * @date    2025-01-21
+ * @date    2025-01-22
  * @version 1.0
  *
- * @details 本文件定义LoongArch64 CPU特性检测宏
- *          - CPU特性位检测宏
- *          - ISA级别检测
- *          - 各种CPU扩展特性检测
- *          - 地址位数配置
+ * @details 本文件定义LoongArch64 CPU特性检测宏和接口
+ *          - CPU特性位检测宏（cpu_has、cpu_opt）
+ *          - ISA级别检测（32位/64位）
+ *          - 各种CPU扩展特性检测（FPU、LSX、LASX、虚拟化等）
+ *          - 地址位数配置（虚拟地址/物理地址）
  *
  * @note MISRA-C:2012 合规
- * @note 假设CPU0的特性是所有CPU的超集（SMP）
+ * @note SMP假设：CPU0的特性是所有CPU的超集（所有已知LoongArch系统成立）
  *
  * @copyright Copyright (c) 2025 Intewell Team
  * @copyright Copyright (C) 2020-2022 Loongson Technology Corporation Limited

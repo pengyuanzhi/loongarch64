@@ -2,7 +2,7 @@
  * @file    adrspace.h
  * @brief   LoongArch64地址空间定义
  * @author  Intewell Team
- * @date    2025-01-21
+ * @date    2025-01-22
  * @version 1.0
  *
  * @details 本文件定义LoongArch64地址空间布局相关常量和宏
@@ -148,17 +148,13 @@
  */
 
 #ifdef ASM_USE
-
 #define _ATYPE_
 #define _ATYPE32_
 #define _ATYPE64_
-
 #else
-
 #define _ATYPE_ __PTRDIFF_TYPE__
 #define _ATYPE32_ int
 #define _ATYPE64_ long
-
 #endif
 
 /**
@@ -168,8 +164,8 @@
 #define _ACAST32_
 #define _ACAST64_
 #else
-#define _ACAST32_ (_ATYPE_)(_ATYPE32_) /* 必要时扩展 */
-#define _ACAST64_ (_ATYPE64_)          /* 不缩小 */
+#define _ACAST32_ (_ATYPE_)(_ATYPE32_) /**< 必要时扩展 */
+#define _ACAST64_ (_ATYPE64_) /**< 不缩小 */
 #endif
 
 /** @} */
@@ -180,25 +176,15 @@
  */
 
 #ifdef CONFIG_32BIT
-
-/**
- * @brief 32位地址范围
- */
-#define UVRANGE 0x00000000U  /**< 用户虚拟范围 */
+#define UVRANGE 0x00000000U /**< 用户虚拟范围 */
 #define KPRANGE0 0x80000000U /**< 内核物理范围0 */
 #define KPRANGE1 0xa0000000U /**< 内核物理范围1 */
-#define KVRANGE 0xc0000000U  /**< 内核虚拟范围 */
-
+#define KVRANGE 0xc0000000U /**< 内核虚拟范围 */
 #else
-
-/**
- * @brief 64位地址范围
- */
 #define XUVRANGE _CONST64_(0x0000000000000000) /**< 扩展用户虚拟范围 */
 #define XSPRANGE _CONST64_(0x4000000000000000) /**< 扩展系统物理范围 */
 #define XKPRANGE _CONST64_(0x8000000000000000) /**< 扩展内核物理范围 */
 #define XKVRANGE _CONST64_(0xc000000000000000) /**< 扩展内核虚拟范围 */
-
 #endif
 
 /**
@@ -226,7 +212,7 @@
  *          | pci io ports(16K~32M) |
  *          |-----------------------|
  *          | isa io ports(0  ~16K) |
- * PCI_IOBASE ->|-----------------------|
+ *          PCI_IOBASE ->|-----------------------|
  *          |         ....          |
  */
 
