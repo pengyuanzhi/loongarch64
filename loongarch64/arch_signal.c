@@ -971,25 +971,9 @@ static int restore_sigcontext(struct arch_context *regs, struct sigcontext __use
     err = __get_user(extctx.flags, &sc->sc_flags);
     if (err)
         goto bad;
-#if 0
- 	err = parse_extcontext(sc, &extctx);
-	if (err)
-		goto bad;
-#endif
     err |= __get_user(regs->csr_era, &sc->sc_pc);
     for (i = 1; i < 32; i++)
         err |= __get_user(regs->regs[i], &sc->sc_regs[i]);
-#if 0
-	if (extctx.lasx.addr)
-		err |= protected_restore_lasx_context(&extctx);
-	else if (extctx.lsx.addr)
-		err |= protected_restore_lsx_context(&extctx);
-	else if (extctx.fpu.addr)
-		err |= protected_restore_fpu_context(&extctx);
-#ifdef CONFIG_CPU_HAS_LBT
-	if (extctx.lbt.addr)
-		err |= protected_restore_lbt_context(&extctx);
-#endif
 #endif
 bad:
 
@@ -1065,7 +1049,6 @@ static void __user *get_sigframe(struct ksignal *ksig, struct arch_context *cont
     unsigned long sp;
     /* Default to using normal stack */
     sp = context->regs[3];
-    // printk("%s,%d sp = 0x%llx\n", __FUNCTION__, __LINE__, sp);
     /*
      * If we are on the alternate signal stack and would overflow it, don't.
      * Return an always-bogus address instead so we will die with SIGSEGV.
@@ -1074,13 +1057,9 @@ static void __user *get_sigframe(struct ksignal *ksig, struct arch_context *cont
 
         return (void __user __force *)(-1UL);
     sp = sigsp(sp, ksig);
-    // printk("%s,%d sp = 0x%llx\n", __FUNCTION__, __LINE__, sp);
     sp = round_down(sp, 16);
-    // printk("%s,%d sp = 0x%llx\n", __FUNCTION__, __LINE__, sp);
     sp = setup_extcontext(extctx, sp);
-    // printk("%s,%d sp = 0x%llx\n", __FUNCTION__, __LINE__, sp);
     sp -= sizeof(struct rt_sigframe);
-    // printk("%s,%d sp = 0x%llx\n", __FUNCTION__, __LINE__, sp);
     if (!IS_ALIGNED(sp, 16))
         KLOG_E("not aligned 16");
 
@@ -1238,36 +1217,11 @@ static void handle_signal(struct ksignal *ksig, struct arch_context *context, bo
 {
     int ret;
     process_sigset_t *oldset = sigmask_to_save();
-#if 0
-	/* Are we from a system call? */
-	if (in_syscall) 
-	{
-		switch (context->regs[4]) 
-		{
-			case -ERESTART_RESTARTBLOCK:
-			case -ERESTARTNOHAND:
-				context->regs[4] = -EINTR;
-				break;
-			case -ERESTARTSYS:
-				if (!(ksig->ka.sa_flags & SA_RESTART)) 
-				{
-					context->regs[4] = -EINTR;
-					break;
-				}
-				__attribute__((__fallthrough__));
-			case -ERESTARTNOINTR:
-				context->regs[4] = context->orig_a0;
-				context->csr_era -= 4;
-		}
-	}
-#endif
-    // printk("%p(%s) [%s:%u] UN:%d signal %d, pc:%p\n",
     //     ttosGetRunningTask(), ttosGetRunningTaskName(), __FUNCTION__, __LINE__,
     //     context->regs[11], ksig->sig, ksig->ka.__sa_handler.sa_handler);
     setup_rt_frame(ksig, context, oldset);
     signal_delivered(ksig, 0);
     TTOS_TaskEnterUserHook(ttosProcessSelf()->taskControlId);
-    // printk("%s,%d\n", __FUNCTION__, __LINE__);
     // signal_setup_done(ksig, 0);
     restore_context(context);
 }
@@ -1290,7 +1244,6 @@ int arch_do_signal(struct arch_context *context)
     struct ksignal ksig;
     bool exist_signal = false;
     bool is_in_syscall = in_syscall(context);
-    // printk("%s,%d is_in_syscall = %d\n", __FUNCTION__, __LINE__, is_in_syscall);
     if (is_in_syscall)
     {
         /*
@@ -1303,7 +1256,6 @@ int arch_do_signal(struct arch_context *context)
      * the debugger may change all of our registers.
      */
     exist_signal = get_signal(&ksig);
-    // printk("%s,%d exist_signal = %d\n", __FUNCTION__, __LINE__, exist_signal);
     if (exist_signal)
     {
         handle_signal(&ksig, context, is_in_syscall);
@@ -1317,7 +1269,6 @@ int arch_do_signal(struct arch_context *context)
         {
         case -ERESTART_RESTARTBLOCK:
         case -ERESTARTNOHAND:
-            // printk("%p(%s) [%s:%u]: UN: %d, a0:%p, %p, a1: %p\n",
             //     ttosGetRunningTask(), ttosGetRunningTaskName(), __func__, __LINE__,
             //     context->regs[11], context->regs[4], context->orig_a0, context->regs[5]);
             context->regs[4] = -EINTR;
@@ -1325,13 +1276,11 @@ int arch_do_signal(struct arch_context *context)
         case -ERESTARTSYS:
             if (!(ksig.ka.sa_flags & SA_RESTART))
             {
-                // printk("%p(%s) [%s:%u]: UN: %d, a0:%p, %p, a1: %p\n",
                 //     ttosGetRunningTask(), ttosGetRunningTaskName(), __func__, __LINE__,
                 //     context->regs[11], context->regs[4], context->orig_a0, context->regs[5]);
                 context->regs[4] = -EINTR;
                 break;
             }
-            // printk("%p(%s) [%s:%u]: UN: %d, a0:%p, %p, a1: %p\n",
             //     ttosGetRunningTask(), ttosGetRunningTaskName(), __func__, __LINE__,
             //     context->regs[11], context->regs[4], context->orig_a0, context->regs[5]);
             context->regs[4] = context->orig_a0;
@@ -1344,7 +1293,6 @@ int arch_do_signal(struct arch_context *context)
             context->csr_era -= 4;
             break;
         case -ERESTARTNOINTR:
-            // printk("%p(%s) [%s:%u]: UN: %d, a0:%p, %p, a1: %p\n",
             //     ttosGetRunningTask(), ttosGetRunningTaskName(), __func__, __LINE__,
             //     context->regs[11], context->regs[4], context->orig_a0, context->regs[5]);
             context->regs[4] = context->orig_a0;
@@ -1368,7 +1316,6 @@ int arch_do_signal(struct arch_context *context)
         case -ERESTARTNOHAND:
         case -ERESTARTSYS:
         case -ERESTARTNOINTR:
-            // printk("%p(%s) [%s:%u]: UN: %d, a0:%p, %p, a1: %p\n",
             //     ttosGetRunningTask(), ttosGetRunningTaskName(), __func__, __LINE__,
             //     context->regs[11], context->regs[4], context->orig_a0, context->regs[5]);
             context->regs[4] = context->orig_a0;
@@ -1381,7 +1328,6 @@ int arch_do_signal(struct arch_context *context)
             context->csr_era -= 4;
             break;
         case -ERESTART_RESTARTBLOCK:
-            // printk("%p(%s) [%s:%u]: UN: %d, a0:%p, %p, a1: %p\n",
             //     ttosGetRunningTask(), ttosGetRunningTaskName(), __func__, __LINE__,
             //     context->regs[11], context->regs[4], context->orig_a0, context->regs[5]);
             context->regs[4] = context->orig_a0;
@@ -1402,5 +1348,4 @@ int arch_do_signal(struct arch_context *context)
      * back
      */
     restore_saved_sigmask();
-    // printk("%s,%d end \n", __FUNCTION__, __LINE__);
 }
