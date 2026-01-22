@@ -713,6 +713,142 @@ a = a + 1U;
  */
 ```
 
+#### 4.3.10 汇编文件注释规范
+
+**汇编文件必须使用 Doxygen 风格的 C 注释（/* */）**。
+
+汇编文件的注释要求与 C 代码相同，必须包含：
+1. 文件头注释（@file、@brief、@details 等）
+2. 函数注释（@brief、@param、@return 等）
+3. 关键代码行的行内注释
+
+**汇编文件头注释**：
+
+```assembly
+/**
+ * @file    return2user.S
+ * @brief   从内核模式切换到用户模式
+ * @author  Intewell Team
+ * @date    2025-01-22
+ * @version 1.0
+ *
+ * @details 本文件实现从内核模式（PLV0）到用户模式（PLV3）的切换
+ *          - 设置用户栈指针
+ *          - 设置用户程序入口地址
+ *          - 配置 CRMD 寄存器（当前模式寄存器）
+ *          - 清空所有寄存器避免信息泄露
+ *          - 使用 ertn 指令跳转到用户空间
+ *
+ * @note MISRA-C:2012 合规
+ * @warning 此函数执行后不会返回到内核
+ * @warning 调用前必须确保用户栈、参数和入口地址已正确设置
+ *
+ * @copyright Copyright (c) 2025 Intewell Team
+ */
+```
+
+**汇编函数注释**：
+
+```assembly
+/**
+ * @brief 切换到用户模式
+ *
+ * @details 执行从内核模式到用户模式的实际切换
+ *          1. 清空参数寄存器 a0（避免信息泄露）
+ *          2. 设置用户栈指针（sp = a1）
+ *          3. 设置用户入口地址（ERA = a2）
+ *          4. 配置 CRMD 寄存器（CRMD = a3）
+ *          5. 清空所有通用寄存器
+ *          6. 执行指令和数据同步屏障
+ *          7. 使用 ertn 跳转到用户空间
+ *
+ * @param a0 args      用户参数（将被清零）
+ * @param a1 sp        用户栈指针
+ * @param a2 entry     用户程序入口地址
+ * @param a3 crmd      CRMD 寄存器值（应设置 PLV=3）
+ *
+ * @return 此函数不会返回
+ *
+ * @note 此函数必须从内核模式（PLV0）调用
+ * @note CRMD 值应为 0x1F 或更大（PLV=3, IE=1, DA=1）
+ * @note 执行后处理器将处于用户模式（PLV3）
+ *
+ * @par 调用示例
+ * @code
+ *   // C 代码调用
+ *   return2user((uintptr_t)args, (uintptr_t)sp, (uintptr_t)entry, 0x1FU);
+ * @endcode
+ *
+ * @see arch_run2user
+ * @see LOONGARCH_CSR_CRMD
+ */
+.global return2user
+return2user:
+    move        a0,zero                  /* 清空参数寄存器 a0 */
+    move        sp,a1                    /* 设置用户栈指针 */
+    csrwr       a2,LOONGARCH_CSR_ERA    /* 设置用户入口地址 */
+    csrwr       a3,LOONGARCH_CSR_CRMD   /* 设置当前模式寄存器 CRMD */
+    /* ... */
+```
+
+**汇编注释规则**：
+
+1. **使用 C 风格注释**：
+   ```assembly
+   /* 正确：使用 C 风格注释 */
+   /* 错误：使用 # 注释（汇编预处理除外） */
+   ```
+
+2. **全局函数必须有注释**：
+   ```assembly
+   .global function_name
+   /* 必须在函数前添加 Doxygen 注释 */
+   function_name:
+   ```
+
+3. **局部函数建议添加注释**：
+   ```assembly
+   /* 局部函数也建议添加注释，但可以简化 */
+   .local internal_func
+   internal_func:
+   ```
+
+4. **关键代码行必须添加行内注释**：
+   ```assembly
+   csrwr       a0,LOONGARCH_CSR_CRMD   /* 设置当前模式寄存器 */
+   ibar        0                        /* 指令同步屏障 */
+   dbar        0                        /* 数据同步屏障 */
+   ertn                                  /* 异常返回，跳转到用户空间 */
+   ```
+
+5. **复杂逻辑需要多行注释**：
+   ```assembly
+   /*
+    * 清空所有通用寄存器
+    * 避免内核信息泄露到用户空间
+    */
+   move        a1,zero
+   move        a2,zero
+   /* ... */
+   ```
+
+**注释位置**：
+
+```assembly
+/**
+ * @brief 函数注释（函数前）
+ */
+.global func_name
+func_name:
+    /* 行内注释（指令后） */
+    move        a0,zero      /* 清空寄存器 */
+
+    /* 代码块前注释（解释代码块功能） */
+    /* 清空所有寄存器 */
+    move        a1,zero
+    move        a2,zero
+```
+
 ### 4.4 文件组织规范
 
 #### 4.4.1 头文件结构
