@@ -5,9 +5,10 @@
 #include <context.h>
 .global return2user
 return2user:
-    move        sp,a1
-    csrwr       a2,LOONGARCH_CSR_ERA
-	csrwr		a3, LOONGARCH_CSR_PRMD
+    move        a0,zero                  /* 清空参数寄存器 a0 */
+    move        sp,a1                    /* 设置用户栈指针 */
+    csrwr       a2,LOONGARCH_CSR_ERA    /* 设置用户入口地址 */
+    csrwr       a3,LOONGARCH_CSR_CRMD   /* ✅ 设置当前模式寄存器 CRMD */
     move        a1,zero
     move        a2,zero
     move        a3,zero

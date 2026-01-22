@@ -29,19 +29,21 @@
  * @details 清除调试寄存器和断点状态
  */
 void reset_debug_state(void);
+
 /**
  * @brief 切换到用户模式
  *
  * @details 汇编函数，执行从内核模式到用户模式的实际切换
  *
- * @param args  用户参数
- * @param sp    用户栈指针
- * @param entry 用户入口地址
- * @param msr   机器状态寄存器值
+ * @param args  用户参数（a0，将被清零）
+ * @param sp    用户栈指针（a1 -> sp）
+ * @param entry 用户入口地址（a2 -> ERA）
+ * @param crmd  当前模式寄存器值（CRMD）
  *
  * @note 此函数不会返回
+ * @note 直接写入 CRMD 寄存器设置用户模式（PLV=3）
  */
-extern void return2user(uintptr_t args, uintptr_t sp, uintptr_t entry, uintptr_t msr);
+extern void return2user(uintptr_t args, uintptr_t sp, uintptr_t entry, uintptr_t crmd);
 /*************************** 函数实现 ****************************/
 /**
  * @brief 从内核模式切换到用户模式
@@ -77,13 +79,26 @@ __noreturn void arch_run2user(void)
 
     /*
      * 调用汇编函数切换到用户模式
+     *
+     * CRMD 寄存器值说明（0x1F）：
+     *   - BIT[1:0]  PLV  = 3    (用户模式)
+     *   - BIT[2]    IE   = 1    (中断使能)
+     *   - BIT[3]    DA   = 1    (地址异常使能)
+     *   - BIT[4]    PG   = 0    (分页禁用，根据需要调整)
+     *   - BIT[5:6]  DACF = 0    (数据访问格式)
+     *   - BIT[7:8]  DACM = 0    (数据访问掩码)
+     *   - BIT[9]    WE   = 0    (执行使能)
+     *
+     * 注意：0x1F 是最小用户模式配置。如果需要分页或其他特性，
+     *       可以设置对应的位（如 PG=1 需要 0x2F）。
+     *
      * 参数：
-     *   - pcb->args: 传递给用户程序的参数
+     *   - pcb->args: 传递给用户程序的参数（注意：会被清零）
      *   - pcb->userStack: 用户栈指针
      *   - pcb->entry: 用户程序入口地址
-     *   - 0xb7: CSR值，设置PLV3（用户模式）
+     *   - 0x1F: CRMD 寄存器值，设置 PLV=3 (用户模式)
      */
-    return2user((uintptr_t)pcb->args, (uintptr_t)pcb->userStack, (uintptr_t)pcb->entry, 0xb7U);
+    return2user((uintptr_t)pcb->args, (uintptr_t)pcb->userStack, (uintptr_t)pcb->entry, 0x1FU);
 
     /* 永远不会执行到这里，但为了符合MISRA规范，使用for(;;) */
     for (;;)
