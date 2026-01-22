@@ -38,11 +38,15 @@
 #define KLOG_TAG "arch_signal"
 #include <klog.h>
 #include <ttosBase.h>
+
+/*************************** 宏定义 ****************************/
 // 应该定义到 libk
 #define SA_RESTORER 0x04000000
 extern void restore_context(void *context);
 extern void sigreturn_code(void);
 #define IS_ALIGNED(x, a) (((x) & ((typeof(x))(a) - 1)) == 0)
+
+/*************************** 类型定义 ****************************/
 struct rt_sigframe
 {
     struct siginfo rs_info;
@@ -68,6 +72,12 @@ struct extctx_layout
     struct _ctx_layout end;
 };
 
+/*************************** 外部声明 ****************************/
+
+/*************************** 前向声明 ****************************/
+
+/*************************** 模块变量 ****************************/
+
 /*************************** 函数实现 ****************************/
 
 /**
@@ -88,7 +98,7 @@ void signal_setup_done(struct ksignal *ksig, int stepping)
 /**
  * @brief 通过上下文信息获取实际上下文指针
  *
- * @details 从sctx_info结构体中提取实际的上下文指针
+ * @details 从 sctx_info 结构体中提取实际的上下文指针
  *
  * @param info 上下文信息结构体指针
  *
@@ -96,8 +106,19 @@ void signal_setup_done(struct ksignal *ksig, int stepping)
  */
 static void __user *get_ctx_through_ctxinfo(struct sctx_info *info)
 {
+
     return (void __user *)((char *)info + sizeof(struct sctx_info));
 }
+
+/**
+ * @brief 复制 LSX 上下文到信号上下文
+ *
+ * @details 将当前进程的 LSX（LoongArch SIMD 扩展）状态复制到信号上下文
+ *
+ * @param ctx 用户空间 LSX 上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int copy_lsx_to_sigcontext(struct lsx_context __user *ctx)
 {
     int i;
@@ -113,8 +134,19 @@ static int copy_lsx_to_sigcontext(struct lsx_context __user *ctx)
     }
     err |= __put_user(pcb->taskControlId->switchContext.fpu.fcc, fcc);
     err |= __put_user(pcb->taskControlId->switchContext.fpu.fcsr, fcsr);
+
     return err;
 }
+
+/**
+ * @brief 从信号上下文恢复 LSX 上下文
+ *
+ * @details 从信号上下文中恢复 LSX（LoongArch SIMD 扩展）状态
+ *
+ * @param ctx 用户空间 LSX 上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int copy_lsx_from_sigcontext(struct lsx_context __user *ctx)
 {
     int i;
@@ -133,8 +165,18 @@ static int copy_lsx_from_sigcontext(struct lsx_context __user *ctx)
     }
     err |= __get_user(pcb->taskControlId->switchContext.fpu.fcc, fcc);
     err |= __get_user(pcb->taskControlId->switchContext.fpu.fcsr, fcsr);
+
     return err;
 }
+/**
+ * @brief 复制 LASX 上下文到信号上下文
+ *
+ * @details 将当前进程的 LASX（LoongArch 高级 SIMD 扩展）状态复制到信号上下文
+ *
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int copy_lasx_to_sigcontext(struct lasx_context __user *ctx)
 {
     int i;
@@ -152,8 +194,18 @@ static int copy_lasx_to_sigcontext(struct lasx_context __user *ctx)
     }
     err |= __put_user(pcb->taskControlId->switchContext.fpu.fcc, fcc);
     err |= __put_user(pcb->taskControlId->switchContext.fpu.fcsr, fcsr);
+
     return err;
 }
+/**
+ * @brief 从信号上下文恢复 LASX 上下文
+ *
+ * @details 从信号上下文中恢复 LASX（LoongArch 高级 SIMD 扩展）状态
+ *
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int copy_lasx_from_sigcontext(struct lasx_context __user *ctx)
 {
     int i;
@@ -176,9 +228,19 @@ static int copy_lasx_from_sigcontext(struct lasx_context __user *ctx)
     }
     err |= __get_user(pcb->taskControlId->switchContext.fpu.fcc, fcc);
     err |= __get_user(pcb->taskControlId->switchContext.fpu.fcsr, fcsr);
+
     return err;
 }
 #ifdef CONFIG_CPU_HAS_LBT
+/**
+ * @brief 复制 LBT 上下文到信号上下文
+ *
+ * @details 将当前进程的 LBT（LoongArch 二进制翻译）状态复制到信号上下文
+ *
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int copy_lbt_to_sigcontext(struct lbt_context __user *ctx)
 {
     int err = 0;
@@ -190,8 +252,18 @@ static int copy_lbt_to_sigcontext(struct lbt_context __user *ctx)
     err |= __put_user(current->thread.lbt.scr2, &regs[2]);
     err |= __put_user(current->thread.lbt.scr3, &regs[3]);
     err |= __put_user(current->thread.lbt.eflags, eflags);
+
     return err;
 }
+/**
+ * @brief 从信号上下文恢复 LBT 上下文
+ *
+ * @details 从信号上下文中恢复 LBT（LoongArch 二进制翻译）状态
+ *
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int copy_lbt_from_sigcontext(struct lbt_context __user *ctx)
 {
     int err = 0;
@@ -202,16 +274,37 @@ static int copy_lbt_from_sigcontext(struct lbt_context __user *ctx)
     err |= __get_user(current->thread.lbt.scr2, &regs[2]);
     err |= __get_user(current->thread.lbt.scr3, &regs[3]);
     err |= __get_user(current->thread.lbt.eflags, eflags);
+
     return err;
 }
+/**
+ * @brief 复制 FPU 栈顶到信号上下文
+ *
+ * @details 将 FPU 栈顶指针复制到信号上下文
+ *
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int copy_ftop_to_sigcontext(struct lbt_context __user *ctx)
 {
     uint32_t __user *ftop = &ctx->ftop;
+
     return __put_user(current->thread.fpu.ftop, ftop);
 }
+/**
+ * @brief 从信号上下文恢复 FPU 栈顶
+ *
+ * @details 从信号上下文中恢复 FPU 栈顶指针
+ *
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int copy_ftop_from_sigcontext(struct lbt_context __user *ctx)
 {
     uint32_t __user *ftop = &ctx->ftop;
+
     return __get_user(current->thread.fpu.ftop, ftop);
 }
 #endif
@@ -219,83 +312,199 @@ static int copy_ftop_from_sigcontext(struct lbt_context __user *ctx)
  * Wrappers for the assembly _{save,restore}_fp_context functions.
  */
 int _save_fp_context(uint64_t *regs, uint64_t *fcc, uint32_t *fcsr);
+/**
+ * @brief 保存硬件 FPU 上下文
+ *
+ * @details 调用汇编函数保存 FPU 硬件状态到用户空间
+ *
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int save_hw_fpu_context(struct fpu_context __user *ctx)
 {
     uint64_t __user *regs = (uint64_t *)&ctx->regs;
     uint64_t __user *fcc = &ctx->fcc;
     uint32_t __user *fcsr = &ctx->fcsr;
+
     return _save_fp_context(regs, fcc, fcsr);
 }
 int _restore_fp_context(uint64_t *regs, uint64_t *fcc, uint32_t *fcsr);
+/**
+ * @brief 恢复硬件 FPU 上下文
+ *
+ * @details 调用汇编函数从用户空间恢复 FPU 硬件状态
+ *
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int restore_hw_fpu_context(struct fpu_context __user *ctx)
 {
     uint64_t __user *regs = (uint64_t *)&ctx->regs;
     uint64_t __user *fcc = &ctx->fcc;
     uint32_t __user *fcsr = &ctx->fcsr;
+
     return _restore_fp_context(regs, fcc, fcsr);
 }
 int _save_lsx_context(uint64_t *regs, uint64_t *fcc, uint32_t *fcsr);
+/**
+ * @brief 保存硬件 LSX 上下文
+ *
+ * @details 调用汇编函数保存 LSX 硬件状态到用户空间
+ *
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int save_hw_lsx_context(struct lsx_context __user *ctx)
 {
     uint64_t __user *regs = (uint64_t *)&ctx->regs;
     uint64_t __user *fcc = &ctx->fcc;
     uint32_t __user *fcsr = &ctx->fcsr;
+
     return _save_lsx_context(regs, fcc, fcsr);
 }
 int _restore_lsx_context(uint64_t *regs, uint64_t *fcc, uint32_t *fcsr);
+/**
+ * @brief 恢复硬件 LSX 上下文
+ *
+ * @details 调用汇编函数从用户空间恢复 LSX 硬件状态
+ *
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int restore_hw_lsx_context(struct lsx_context __user *ctx)
 {
     uint64_t __user *regs = (uint64_t *)&ctx->regs;
     uint64_t __user *fcc = &ctx->fcc;
     uint32_t __user *fcsr = &ctx->fcsr;
+
     return _restore_lsx_context(regs, fcc, fcsr);
 }
 int _save_lasx_context(uint64_t *regs, uint64_t *fcc, uint32_t *fcsr);
+/**
+ * @brief 保存硬件 LASX 上下文
+ *
+ * @details 调用汇编函数保存 LASX 硬件状态到用户空间
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int save_hw_lasx_context(struct lasx_context __user *ctx)
 {
     uint64_t __user *regs = (uint64_t *)&ctx->regs;
     uint64_t __user *fcc = &ctx->fcc;
     uint32_t __user *fcsr = &ctx->fcsr;
+
     return _save_lasx_context(regs, fcc, fcsr);
 }
 int _restore_lasx_context(uint64_t *regs, uint64_t *fcc, uint32_t *fcsr);
+/**
+ * @brief 恢复硬件 LASX 上下文
+ *
+ * @details 调用汇编函数从用户空间恢复 LASX 硬件状态
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int restore_hw_lasx_context(struct lasx_context __user *ctx)
 {
     uint64_t __user *regs = (uint64_t *)&ctx->regs;
     uint64_t __user *fcc = &ctx->fcc;
     uint32_t __user *fcsr = &ctx->fcsr;
+
     return _restore_lasx_context(regs, fcc, fcsr);
 }
 /*
  * Wrappers for the assembly _{save,restore}_lbt_context functions.
  */
 #ifdef CONFIG_CPU_HAS_LBT
+/**
+ * @brief 保存硬件 LBT 上下文
+ *
+ * @details 调用汇编函数保存 LBT 硬件状态到用户空间
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int save_hw_lbt_context(struct lbt_context __user *ctx)
 {
     uint64_t __user *regs = (uint64_t *)&ctx->regs;
     uint32_t __user *eflags = (uint32_t *)&ctx->eflags;
+
     return _save_lbt_context(regs, eflags);
 }
+/**
+ * @brief 恢复硬件 LBT 上下文
+ *
+ * @details 调用汇编函数从用户空间恢复 LBT 硬件状态
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int restore_hw_lbt_context(struct lbt_context __user *ctx)
 {
     uint64_t __user *regs = (uint64_t *)&ctx->regs;
     uint32_t __user *eflags = (uint32_t *)&ctx->eflags;
+
     return _restore_lbt_context(regs, eflags);
 }
+/**
+ * @brief 保存硬件 FPU 栈顶
+ *
+ * @details 调用汇编函数保存 FPU 栈顶指针到用户空间
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int save_hw_ftop_context(struct lbt_context __user *ctx)
 {
     uint32_t __user *ftop = &ctx->ftop;
+
     return _save_ftop_context(ftop);
 }
+/**
+ * @brief 恢复硬件 FPU 栈顶
+ *
+ * @details 调用汇编函数从用户空间恢复 FPU 栈顶指针
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int restore_hw_ftop_context(struct lbt_context __user *ctx)
 {
     uint32_t __user *ftop = &ctx->ftop;
+
     return _restore_ftop_context(ftop);
 }
 #endif
 /*
  * Thread saved context copy to/from a signal context presumed to be on the
  * user stack, and therefore accessed with appropriate macros from uaccess.h.
+ */
+/**
+ * @brief 复制 FPU 上下文到信号上下文
+ *
+ * @details 将当前进程的 FPU 状态复制到信号上下文
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
  */
 static int copy_fpu_to_sigcontext(struct fpu_context __user *ctx)
 {
@@ -311,8 +520,19 @@ static int copy_fpu_to_sigcontext(struct fpu_context __user *ctx)
     }
     err |= __put_user(pcb->taskControlId->switchContext.fpu.fcc, fcc);
     err |= __put_user(pcb->taskControlId->switchContext.fpu.fcsr, fcsr);
+
     return err;
 }
+/**
+ * @brief 从信号上下文恢复 FPU 上下文
+ *
+ * @details 从信号上下文中恢复 FPU 状态
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int copy_fpu_from_sigcontext(struct fpu_context __user *ctx)
 {
     int i;
@@ -329,8 +549,19 @@ static int copy_fpu_from_sigcontext(struct fpu_context __user *ctx)
     }
     err |= __get_user(pcb->taskControlId->switchContext.fpu.fcc, fcc);
     err |= __get_user(pcb->taskControlId->switchContext.fpu.fcsr, fcsr);
+
     return err;
 }
+/**
+ * @brief 检查并处理 FPU CSR 异常标志
+ *
+ * @details 检查 FPU 控制状态寄存器中的异常标志并返回相应的信号
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int fcsr_pending(unsigned int __user *fcsr)
 {
     int err, sig = 0;
@@ -347,10 +578,21 @@ static int fcsr_pending(unsigned int __user *fcsr)
         err |= __put_user(csr, fcsr);
         sig = SIGFPE;
     }
+
     return err ?: sig;
 }
 /*
  * Helper routines
+ */
+/**
+ * @brief 保护性保存 FPU 上下文
+ *
+ * @details 安全地保存 FPU 上下文到用户空间，处理页面错误
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
  */
 static int protected_save_fpu_context(struct extctx_layout *extctx)
 {
@@ -370,10 +612,22 @@ static int protected_save_fpu_context(struct extctx_layout *extctx)
         /* Touch the FPU context and try again */
         err = __put_user(0, &regs[0]) | __put_user(0, &regs[31]) | __put_user(0, fcc) | __put_user(0, fcsr);
         if (err)
+
             return err; /* really bad sigcontext */
     }
+
     return err;
 }
+/**
+ * @brief 保护性恢复 FPU 上下文
+ *
+ * @details 安全地从用户空间恢复 FPU 上下文，处理页面错误
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int protected_restore_fpu_context(struct extctx_layout *extctx)
 {
     int err = 0, sig = 0, tmp __attribute__((__unused__));
@@ -384,6 +638,7 @@ static int protected_restore_fpu_context(struct extctx_layout *extctx)
     uint32_t __user *fcsr = &fpu_ctx->fcsr;
     err = sig = fcsr_pending(fcsr);
     if (err < 0)
+
         return err;
     for (;;)
     {
@@ -395,8 +650,19 @@ static int protected_restore_fpu_context(struct extctx_layout *extctx)
         if (err)
             break; /* really bad sigcontext */
     }
+
     return err ?: sig;
 }
+/**
+ * @brief 保护性保存 LSX 上下文
+ *
+ * @details 安全地保存 LSX 上下文到用户空间，处理页面错误
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int protected_save_lsx_context(struct extctx_layout *extctx)
 {
     int err = 0;
@@ -425,10 +691,22 @@ static int protected_save_lsx_context(struct extctx_layout *extctx)
         /* Touch the LSX context and try again */
         err = __put_user(0, &regs[0]) | __put_user(0, &regs[32 * 2 - 1]) | __put_user(0, fcc) | __put_user(0, fcsr);
         if (err)
+
             return err; /* really bad sigcontext */
     }
+
     return err;
 }
+/**
+ * @brief 保护性恢复 LSX 上下文
+ *
+ * @details 安全地从用户空间恢复 LSX 上下文，处理页面错误
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int protected_restore_lsx_context(struct extctx_layout *extctx)
 {
     int err = 0, sig = 0, tmp __attribute__((__unused__));
@@ -440,6 +718,7 @@ static int protected_restore_lsx_context(struct extctx_layout *extctx)
     pcb_t pcb = ttosProcessSelf();
     err = sig = fcsr_pending(fcsr);
     if (err < 0)
+
         return err;
     for (;;)
     {
@@ -461,8 +740,19 @@ static int protected_restore_lsx_context(struct extctx_layout *extctx)
         if (err)
             break; /* really bad sigcontext */
     }
+
     return err ?: sig;
 }
+/**
+ * @brief 保护性保存 LASX 上下文
+ *
+ * @details 安全地保存 LASX 上下文到用户空间，处理页面错误
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int protected_save_lasx_context(struct extctx_layout *extctx)
 {
     int err = 0;
@@ -491,10 +781,22 @@ static int protected_save_lasx_context(struct extctx_layout *extctx)
         /* Touch the LASX context and try again */
         err = __put_user(0, &regs[0]) | __put_user(0, &regs[32 * 4 - 1]) | __put_user(0, fcc) | __put_user(0, fcsr);
         if (err)
+
             return err; /* really bad sigcontext */
     }
+
     return err;
 }
+/**
+ * @brief 保护性恢复 LASX 上下文
+ *
+ * @details 安全地从用户空间恢复 LASX 上下文，处理页面错误
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param ctx 用户空间上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int protected_restore_lasx_context(struct extctx_layout *extctx)
 {
     int err = 0, sig = 0, tmp __attribute__((__unused__));
@@ -506,6 +808,7 @@ static int protected_restore_lasx_context(struct extctx_layout *extctx)
     pcb_t pcb = ttosProcessSelf();
     err = sig = fcsr_pending(fcsr);
     if (err < 0)
+
         return err;
     for (;;)
     {
@@ -527,8 +830,22 @@ static int protected_restore_lasx_context(struct extctx_layout *extctx)
         if (err)
             break; /* really bad sigcontext */
     }
+
     return err ?: sig;
 }
+/**
+ * @brief 分配扩展上下文帧空间
+ *
+ * @details 在用户空间栈上分配扩展上下文帧空间
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param layout 上下文布局指针
+ * @param size 大小
+ * @param align 对齐字节数
+ * @param base 基地址
+ *
+ * @return 新的栈指针地址
+ */
 static unsigned long extframe_alloc(struct extctx_layout *extctx, struct _ctx_layout *layout, size_t size,
                                     unsigned int align, unsigned long base)
 {
@@ -538,8 +855,20 @@ static unsigned long extframe_alloc(struct extctx_layout *extctx, struct _ctx_la
     layout->addr = (void *)new_base;
     layout->size = (unsigned int)(base - new_base);
     extctx->size += layout->size;
+
     return new_base;
 }
+/**
+ * @brief 设置信号上下文
+ *
+ * @details 将用户上下文信息保存到信号上下文中
+ *
+ * @param regs 架构上下文指针
+ * @param sc 用户空间信号上下文指针
+ * @param extctx 扩展上下文布局指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int setup_sigcontext(struct arch_context *regs, struct sigcontext __user *sc, struct extctx_layout *extctx)
 {
     int i, err = 0;
@@ -563,8 +892,19 @@ static int setup_sigcontext(struct arch_context *regs, struct sigcontext __user 
     info = (struct sctx_info *)extctx->end.addr;
     err |= __put_user(0, &info->magic);
     err |= __put_user(0, &info->size);
+
     return err;
 }
+/**
+ * @brief 解析扩展上下文
+ *
+ * @details 从信号上下文中解析扩展上下文布局信息
+ *
+ * @param sc 用户空间信号上下文指针
+ * @param extctx 扩展上下文布局指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int parse_extcontext(struct sigcontext __user *sc, struct extctx_layout *extctx)
 {
     int err = 0;
@@ -575,6 +915,7 @@ static int parse_extcontext(struct sigcontext __user *sc, struct extctx_layout *
         err |= __get_user(magic, &info->magic);
         err |= __get_user(size, &info->size);
         if (err)
+
             return err;
         switch (magic)
         {
@@ -606,10 +947,22 @@ static int parse_extcontext(struct sigcontext __user *sc, struct extctx_layout *
         info = (struct sctx_info *)((char *)info + size);
     }
 done:
+
     return 0;
 invalid:
+
     return -EINVAL;
 }
+/**
+ * @brief 恢复信号上下文
+ *
+ * @details 从信号上下文中恢复用户寄存器和状态
+ *
+ * @param regs 架构上下文指针
+ * @param sc 用户空间信号上下文指针
+ *
+ * @return 成功返回 0，失败返回负错误码
+ */
 static int restore_sigcontext(struct arch_context *regs, struct sigcontext __user *sc)
 {
     int i, err = 0;
@@ -639,13 +992,34 @@ static int restore_sigcontext(struct arch_context *regs, struct sigcontext __use
 #endif
 #endif
 bad:
+
     return err;
 }
+
+/**
+ * @brief 处理信号标志
+ *
+ * @details 生成信号上下文标志位
+ *
+ * @return 信号上下文标志位
+ */
 static unsigned int handle_flags(void)
 {
     unsigned int flags = 0;
+
     return flags;
 }
+
+/**
+ * @brief 设置扩展上下文
+ *
+ * @details 在用户空间栈上设置扩展上下文布局
+ *
+ * @param extctx 扩展上下文布局指针
+ * @param sp 当前栈指针
+ *
+ * @return 新的栈指针地址
+ */
 static unsigned long setup_extcontext(struct extctx_layout *extctx, unsigned long sp)
 {
     unsigned long new_sp = sp;
@@ -671,8 +1045,21 @@ static unsigned long setup_extcontext(struct extctx_layout *extctx, unsigned lon
         new_sp = extframe_alloc(extctx, &extctx->lbt, sizeof(struct lbt_context), LBT_CTX_ALIGN, new_sp);
     }
 #endif
+
     return new_sp;
 }
+
+/**
+ * @brief 获取信号帧地址
+ *
+ * @details 计算并返回信号帧在用户空间栈上的地址
+ *
+ * @param ksig 信号信息结构体指针
+ * @param context 架构上下文指针
+ * @param extctx 扩展上下文布局指针
+ *
+ * @return 信号帧地址
+ */
 static void __user *get_sigframe(struct ksignal *ksig, struct arch_context *context, struct extctx_layout *extctx)
 {
     unsigned long sp;
@@ -684,6 +1071,7 @@ static void __user *get_sigframe(struct ksignal *ksig, struct arch_context *cont
      * Return an always-bogus address instead so we will die with SIGSEGV.
      */
     if (on_sig_stack(sp) && !likely(on_sig_stack(sp - sizeof(struct rt_sigframe))))
+
         return (void __user __force *)(-1UL);
     sp = sigsp(sp, ksig);
     // printk("%s,%d sp = 0x%llx\n", __FUNCTION__, __LINE__, sp);
@@ -695,6 +1083,7 @@ static void __user *get_sigframe(struct ksignal *ksig, struct arch_context *cont
     // printk("%s,%d sp = 0x%llx\n", __FUNCTION__, __LINE__, sp);
     if (!IS_ALIGNED(sp, 16))
         KLOG_E("not aligned 16");
+
     return (void __user *)sp;
 }
 
@@ -755,10 +1144,12 @@ int rt_sigreturn(struct arch_context *context)
         goto badframe;
     memcpy(context, &frame->ctxt, sizeof(*context));
     restore_fpu(frame);
+
     return context->regs[4];
 badframe:
     KLOG_E("sigframe err, so stop the self");
     kernel_signal_kill(ttosProcessSelf()->taskControlId->tid, TO_THREAD, SIGSEGV, SI_KERNEL, 0);
+
     return 0;
 }
 
@@ -783,6 +1174,7 @@ static int setup_rt_frame(struct ksignal *ksig, struct arch_context *context, pr
     struct rt_sigframe __user *frame;
     frame = get_sigframe(ksig, context, &extctx);
     if (!user_access_check(frame, sizeof(*frame) + extctx.size, UACCESS_R))
+
         return -EFAULT;
     /* Create siginfo.  */
     err |= copy_siginfo_to_user(&frame->rs_info, &ksig->info);
@@ -795,6 +1187,7 @@ static int setup_rt_frame(struct ksignal *ksig, struct arch_context *context, pr
     save_fpu(frame);
     err |= copy_to_user(&frame->rs_uctx.uc_sigmask, set, sizeof(*set));
     if (err)
+
         return -EFAULT;
     void *sig_return = 0;
     if (ksig->ka.sa_flags & SA_RESTORER)
@@ -823,6 +1216,7 @@ static int setup_rt_frame(struct ksignal *ksig, struct arch_context *context, pr
     context->regs[3] = (unsigned long)frame;
     context->regs[1] = (unsigned long)sig_return;
     context->csr_era = (unsigned long)ksig->ka.__sa_handler.sa_handler;
+
     return 0;
 }
 
